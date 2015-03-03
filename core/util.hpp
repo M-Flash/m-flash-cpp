@@ -8,10 +8,12 @@
 #ifndef MFLASH_CPP_CORE_UTIL_HPP_
 #define MFLASH_CPP_CORE_UTIL_HPP_
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <sstream>
 #include <string>
 
-#include <sstream>
+#include "type.hpp"
 
 using namespace std;
 
@@ -54,6 +56,57 @@ namespace mflash{
 	int64 file_size(string file){
 		return boost::filesystem::file_size(boost::filesystem::path(file));
 	}
+
+	int64* sort_and_get_indexes(int64 n, double values[], bool asc){
+		int64 indexes[n];
+
+	  for ( int64 i = 0; i < n; i++ ){
+	    indexes[i] = i;
+	  }
+
+	  quicksort(values, indexes, 0, n-1, asc);
+
+	  return indexes;
+	}
+
+
+	void quicksort(double values[], int64 indexes[], int64 left, int64 right, bool asc){
+	  double pivot = values[left + (right - left) / 2];
+    int i = left;
+    int j = right;
+
+    int operator_ = asc? 1: -1;
+
+    while (i <= j) {
+        while (operator_*values[i] < operator_*pivot) {
+            i++;
+        }
+        while (operator_*values[j] > operator_*pivot) {
+            j--;
+        }
+        if (i <= j) {
+
+          int64 idxTmp = indexes[i];
+          double valueTmp = values[i];
+
+          values[i] = values[j];
+          values[j] = valueTmp;
+
+          indexes[i] = indexes[j];
+          indexes[j] = idxTmp;
+
+          i++;
+          j--;
+        }
+    }
+
+    if(left < j)
+        quicksort(values, indexes,left,j, asc);
+    if(i < right)
+        quicksort(values, indexes, i,right, asc);
+
+	}
+
 }
 
 
