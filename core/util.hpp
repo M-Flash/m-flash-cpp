@@ -57,19 +57,6 @@ namespace mflash{
 		return boost::filesystem::file_size(boost::filesystem::path(file));
 	}
 
-	int64* sort_and_get_indexes(int64 n, double values[], bool asc){
-		int64 indexes[n];
-
-	  for ( int64 i = 0; i < n; i++ ){
-	    indexes[i] = i;
-	  }
-
-	  quicksort(values, indexes, 0, n-1, asc);
-
-	  return indexes;
-	}
-
-
 	void quicksort(double values[], int64 indexes[], int64 left, int64 right, bool asc){
 	  double pivot = values[left + (right - left) / 2];
     int i = left;
@@ -105,6 +92,18 @@ namespace mflash{
     if(i < right)
         quicksort(values, indexes, i,right, asc);
 
+	}
+
+	int64* sort_and_get_indexes(int64 n, double values[], bool asc){
+		int64 *indexes = new int64[n];
+
+	  for ( int64 i = 0; i < n; i++ ){
+	    indexes[i] = i;
+	  }
+
+	  quicksort(values, indexes, 0, n-1, asc);
+
+	  return indexes;
 	}
 
 }
