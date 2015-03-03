@@ -6,7 +6,7 @@
  */
 
 
-#include <cstdlib>
+#include <cmath>
 #include <ctime>
 #include <iostream>
 
@@ -17,10 +17,12 @@
 #include "../core/primitivevector.hpp"
 #include "../core/type.hpp"
 #include "../core/vector.hpp"
+#include "../log/easylogging++.h"
 
 using namespace std;
 using namespace mflash;
 
+INITIALIZE_EASYLOGGINGPP
 
 struct PairShort{
 	short data1;
@@ -122,7 +124,7 @@ class CustomOperator4 : public BinaryReducer<float>{
 int main(){
 	int64 size = 97;
 	int64 bsize = 10;
-	float value;
+	//float value;
 
 	CustoOperator op;// = new CustoOperator;
 	CustomOperator2 op2;
@@ -160,8 +162,9 @@ int main(){
 	pvector.multiply((float)(1/pvector.pnorm(2)));
 	cout<< pvector.pnorm(2) << endl;
 
+	size = 1413511394;
+	bsize = 939524096;
 	SpMV<float, EmptyType> spmv;
-	exit(0);
 	Vector<float> *vector = new Vector<float>("/hugo/datasets/yahoo/v1", size, bsize);
 	Vector<float> *out = new Vector<float>("/hugo/datasets/yahoo/v2", size, bsize);
 
@@ -169,13 +172,13 @@ int main(){
 	//exit(0);
 //	value = vector->operate(op, *vector, 0, new Vector<float>[0]{/**vector*/});
 	//value = vector->operate(op3, *vector, 0, new Vector<float>[0]{/**vector*/});
-	cout << value << endl;
+	//cout << value << endl;
 
 
 	time_t timer1;
 	time_t timer2;
 	time(&timer1);
-	Matrix<float, EmptyType> matrix ("/hugo/datasets/yahoo/yahoo.bin", 1413511394, false, 939524096, Mode::UNSAFE);
+	Matrix<float, EmptyType> matrix ("/hugo/datasets/yahoo/yahoo.bin", size, false, bsize, Mode::UNSAFE);
 
 	matrix.operate(spmv, *vector, *out);
 	time(&timer2);
