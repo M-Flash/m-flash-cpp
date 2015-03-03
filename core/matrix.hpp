@@ -9,9 +9,10 @@
 #define MFLASH_CPP_CORE_MATRIX_HPP_
 
 #include <algorithm>
-#include <string>
 #include <iostream>
+#include <string>
 
+#include "../log/easylogging++.h"
 #include "array.hpp"
 #include "blockiterator.hpp"
 #include "edgelistthread.hpp"
@@ -79,7 +80,7 @@ namespace mflash{
 
 	};
 
-/*
+
 	template <class V, class E>
 	class AppyOperator: public UnaryOperator<V>{
 		MAlgorithm<V,E> *algorithm;
@@ -96,7 +97,7 @@ namespace mflash{
 			}
 
 	};
-*/
+
 
 	template<class V, class E>
 	Matrix<V,E>::Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode){
@@ -129,7 +130,6 @@ namespace mflash{
 		Array<V>  in (this->element_by_block_);
 
 		MatrixWorker<V, E> outWorker (&algorithm, this, &outAccumulator, &outAccumulator);
-
 		MatrixWorker<V, E> mWorker (&algorithm, this, &in, &outAccumulator);
 
 		//block iteration
@@ -140,8 +140,9 @@ namespace mflash{
 		int64 outOffset = 0;
 
 		InitializeOperator<V,E> initialize_operator (&algorithm, &outWorker);
-		//AppyOperator<V,E> apply_operator (&algorithm, &worker);
+		AppyOperator<V,E> apply_operator (&algorithm, &outWorker);
 
+		LOG (INFO) << "- MATRIX OPERATION STARTED";
 		while(iterator.has_next()){
 			Block block = iterator.next();
 			if(!block.exist()){
@@ -149,43 +150,42 @@ namespace mflash{
 			}
 
 			inOffset = block.get_col()*block_size;
-			cout<< "- PROCESSING BLOCK "<< block.get_col() << " -> " << block.get_row() << endl;
-			//logger.info("- PROCESSING BLOCK {} -> {}", block.getCol(), block.getRow());
+			LOG (INFO)<< "- PROCESSING BLOCK "<< block.get_col() << " -> " << block.get_row();
 
 			if(lastCol != block.get_col()){
 				lastCol = block.get_col();
-				//logger.info("--- LOADING IN-ELEMENT STATES BEETWEEN ");
+				LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
 				in.set_limit(inVector.load_region(inOffset, block_size, in.address()));
 				in.set_offset(inOffset);
-				//logger.info("--- IN-ELEMENT STATES BEETWEEN {} AND {} LOADED", in.getOffset(), in.getOffset() + in.getLimit());
+				LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << in.offset() << " AND " << in.offset()  + in.limit();
 			}
 
 			if(block.get_row() != row){
-				//slicing the output vertex stream
 				if(row != -1){
 					//making summarization
 					//sumReplicates(algorithm, worker, outAccumulator, replicates);
-//					logger.info("--- STORING OUT-ELEMENT STATES BEETWEEN {} AND {} ", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
+					LOG (INFO) << "--- STORING OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1;
 					outVector.store_region(outOffset, block_size, outAccumulator.address());
-	//				logger.info("--- OUT-ELEMENT STATES BEETWEEN {} AND {} STORED", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
+					LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << "STORED";
+
 				}
 				row = block.get_row();
 
 				outOffset = block.get_row()*block_size;
 				//outAccumulator.setLimit(limit);
 
-			//	logger.info("--- LOADING OUT-ELEMENT STATES ");
+				LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES";
 				outAccumulator.set_limit(outVector.load_region(outOffset, block_size, outAccumulator.address()));
 				outAccumulator.set_offset(outOffset);
-				//logger.info("--- OUT-ELEMENT STATES BEETWEEN {} AND {} LOADED", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
+				LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << "LOADED";
 
 				//initializing out_vector values
 				if(algorithm.isInitialized()){
-				//	logger.info("--- INITIALIZING ON OUT-ELEMENT STATES BEETWEEN {} AND {} ", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
+						LOG (INFO) << "--- INITIALIZING ON OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << " STORED";
 						outAccumulator.operate(initialize_operator, outAccumulator, outAccumulator, outAccumulator);
-					//outAccumulator.operate( (UnaryOperatorExtended<Element<V>>)(v)-> {algorithm.initialize(worker, v); return v;}, outAccumulator);
+						LOG (INFO) << "--- OUT-ELEMENT STATES INITIALIZED";
 				}else{
-			//		logger.info("--- INITIALIZING ON OUT-ELEMENT STATES BEETWEEN {} AND {} OMITTED", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
+						LOG (INFO) << "--- INITIALIZING ON OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << " OMITTED";
 				}
 
 				//copying values
@@ -219,20 +219,22 @@ namespace mflash{
 				//stream.close_stream();
 		}
 
-		if ( algorithm.isApplied() ){
-//				outAccumulator.operate(apply_operator, outAccumulator, outAccumulator, outAccumulator);
+		if(algorithm.isApplied()){
+				LOG (INFO) << "--- APPLYING ON OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << " STORED";
+				outAccumulator.operate(apply_operator, outAccumulator, outAccumulator, outAccumulator);
+				LOG (INFO) << "--- OUT-ELEMENT STATES APPLYED";
+		}else{
+				LOG (INFO) << "--- APPLYIN ON OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << " OMITTED";
 		}
+
+
+		LOG (INFO) << "--- STORING OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1;
+		outVector.store_region(outOffset, block_size, outAccumulator.address());
+		LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << outAccumulator.offset() << " AND " << outAccumulator.offset() + outAccumulator.limit()-1 << " STORED";
 		//making summarization
 		//sumReplicates(algorithm, worker, outAccumulator, replicates);
-		//logger.info("--- STORING OUT-ELEMENT STATES BEETWEEN {} AND {} ", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
-		outVector.store_region(outOffset, block_size, outAccumulator.address());
-		//logger.info("--- OUT-ELEMENT STATES BEETWEEN {} AND {} STORED", outAccumulator.getOffset(), outAccumulator.getOffset() + outAccumulator.getLimit());
 
-		//logger.info("- FREEING RESOURCES");
-		//in.free();
-		//outAccumulator.free();
-		//pool.shutdown();
-	//	logger.info("- FINALIZING OPERATION");
+		LOG (INFO) << "- MATRIX OPERATION FINISHED";
 	}
 
 }

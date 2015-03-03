@@ -10,16 +10,19 @@
 
 #include <bits/vector.tcc>
 #include <algorithm>
-#include <stdio.h>
+#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <string>
 #include <vector>
 
+#include "../log/easylogging++.h"
+
 #include "array.hpp"
 #include "linearcombination.hpp"
 #include "operator.hpp"
 #include "type.hpp"
+#include "util.hpp"
 
 
 using namespace std;
@@ -102,7 +105,10 @@ namespace mflash{
 
 		int64 offset = 0;
 		int64 block_size = 0;
+
+		LOG (INFO) << "VECTOR OPERATION STARTED WITH " << blocks << " BLOCKS";
 		for (int64 block = 0; block < blocks; block++) {
+			LOG (INFO) << "PROCESSINGN BLOCK " << block;
 			offset = block * elements_by_block;
 			block_size = min(elements_by_block, size - offset);
 
@@ -157,6 +163,8 @@ namespace mflash{
 
 		delete out;
 		delete tmp;
+
+		LOG (INFO) << "VECTOR OPERATION FINALIZED";
 
 		if (!default_reducer) {
 			return final_accumulator;
