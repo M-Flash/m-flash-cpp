@@ -1,0 +1,8 @@
+*~
+# ignoring hidden folders and files
+/.metadata
+/.recommenders
+/RemoteSystemsTempFiles
+Debug/
+*/Debut/*
+*/Debug/**
