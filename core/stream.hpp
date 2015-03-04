@@ -66,7 +66,7 @@ class Stream{
 };
 
 
-Stream::Stream(string file){
+inline Stream::Stream(string file){
 	this->file = file;
 	this->offset = 0;
 

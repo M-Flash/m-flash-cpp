@@ -23,7 +23,7 @@ namespace mflash{
 	template <class V>
 	class PrimitiveVectorBinarySum : public BinaryOperator<V>{
 		public:
-			void apply(Element<V> &left, Element<V> &right, Element<V> &out){
+			inline void apply(Element<V> &left, Element<V> &right, Element<V> &out){
 				(*out.value) = (*left.value) + (*right.value);
 			}
 	};
@@ -31,7 +31,7 @@ namespace mflash{
 	template <class V>
 		class PrimitiveVectorBinaryMul : public BinaryOperator<V>{
 			public:
-				void apply(Element<V> &left, Element<V> &right, Element<V> &out){
+				inline void apply(Element<V> &left, Element<V> &right, Element<V> &out){
 					(*out.value) = (*left.value) * (*right.value);
 				}
 		};
@@ -39,13 +39,13 @@ namespace mflash{
 	template <class V>
 		class PrimitiveVectorProductPoint: public BinaryReducer<V>{
 			public:
-				void initialize(V &out) {
+				inline void initialize(V &out) {
 					out = 0;
 				}
-				void sum(V &left, V &right, V &out){
+				inline void sum(V &left, V &right, V &out){
 					out = right + left;
 				}
-				void apply(Element<V> &left, Element<V> &right, Element<V> &out){
+				inline void apply(Element<V> &left, Element<V> &right, Element<V> &out){
 					(*out.value) = (*left.value) * (*right.value);
 				}
 		};
@@ -61,13 +61,13 @@ namespace mflash{
 					even = !(p%2);
 				}
 
-				void initialize(V &out) {
+				inline void initialize(V &out) {
 					out = 0;
 				}
-				void sum(V &left, V &right, V &out){
+				inline void sum(V &left, V &right, V &out){
 					out = right + left;
 				}
-				void apply(Element<V> &left, Element<V> &out){
+				inline void apply(Element<V> &left, Element<V> &out){
 					if(even){
 							(*out.value) = pow((*left.value), p);
 					}else{
@@ -80,7 +80,7 @@ namespace mflash{
 		class PrimitiveVectorFillRandom: public ZeroOperator<V>{
 			public:
 				PrimitiveVectorFillRandom(){srand (time(NULL));}
-				void apply(Element<V> &out){
+				inline void apply(Element<V> &out){
 					(*out.value) = (V)rand()/ RAND_MAX;
 				}
 		};
@@ -90,7 +90,7 @@ namespace mflash{
 				V value;
 			public:
 				PrimitiveVectorFill(V value){this->value = value;}
-				void apply(Element<V> &out){
+				inline void apply(Element<V> &out){
 					(*out.value) = value;
 				}
 		};
@@ -100,7 +100,7 @@ namespace mflash{
 				V value;
 			public:
 				PrimitiveVectorMultiplyConstant(V value){this->value = value;}
-				void apply(Element<V> &element, Element<V> &out){
+				inline void apply(Element<V> &element, Element<V> &out){
 					(*out.value) = *(element.value) * value;
 				}
 		};
@@ -110,7 +110,7 @@ namespace mflash{
 				V value;
 			public:
 				PrimitiveVectorAddConstant(V value){this->value = value;}
-				void apply(Element<V> &element, Element<V> &out){
+				inline void apply(Element<V> &element, Element<V> &out){
 					(*out.value) = *(element.value) + value;
 				}
 		};

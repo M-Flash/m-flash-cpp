@@ -46,6 +46,7 @@ namespace mflash{
 		public:
 			Vector(string file, int64 size, int64 elements_by_block);
 			int64 element_size(){ return sizeof(V);}
+			string get_file(){return file;}
 			/*static V operate(Operator<V> &operator_, Vector<V> &output, Vector<V> &v1);
 			static V operate(Operator<V> &operator_, Vector<V> &output, Vector<V> &v1, Vector<V> &v2);*/
 
@@ -213,7 +214,7 @@ namespace mflash{
 
 
 	template <class V>
-	int64 Vector<V>::load_region(int64 offset, int64 size, V* address){
+	inline int64 Vector<V>::load_region(int64 offset, int64 size, V* address){
 		int64 element_size = this->element_size();
 		size = min(size, this->size - offset) * element_size;
 
@@ -244,7 +245,7 @@ namespace mflash{
 	}
 
 	template <class V>
-	void Vector<V>::store_region(int64 offset, int64 size, V* address){
+	inline void Vector<V>::store_region(int64 offset, int64 size, V* address){
 		int64 element_size = this->element_size();
 		size = min(size, this->size - offset) * element_size;
 		offset *= element_size;

@@ -24,14 +24,15 @@ namespace mflash{
 		int64 offset_;
 		V* offset_address;
 
-		bool wasAllocated;
+		bool wasAllocated_;
 
 		void init();
 
 		public:
 
-			Array (int64 size);
+
 			Array (int64 size, int64 offset);
+			Array (int64 size) : Array(size, 0){}
 			/**
 			 * Create an array pointer using starting in address to size + adress.
 			 * The offset is the index offset that represent the first position.
@@ -47,6 +48,7 @@ namespace mflash{
 			void set_offset(int64 offset);
 			V* get_element(int64 pos);
 			void set_element(int64 pos, V* value);
+			bool was_allocated(){return wasAllocated_;}
 
 			static V operate(Operator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out);
 			static V operate(ZeroOperator<V> &operator_, Array<V> &left);
@@ -133,17 +135,29 @@ namespace mflash{
 	 * @param is the number of items on the array.
 	 */
 	template <class V>
-	Array<V>::Array (int64 size){
+	Array<V>::Array (int64 size, int64 offset){
 		this->address_ = new V[size];
-		this->wasAllocated = true;
+		this->wasAllocated_ = true;
 		this->size_ = size;
-		set_offset(0);
+		set_offset(offset);
+		set_limit(size);
+	}
+
+	/**
+	 * @param is the number of items on the array.
+	 */
+	template <class V>
+	Array<V>::Array (V* address, int64 size, int64 offset){
+		this->address_ = address;
+		this->wasAllocated_ = false;
+		this->size_ = size;
+		set_offset(offset);
 		set_limit(size);
 	}
 
 	template <class V>
 	Array<V>::~Array (){
-		if(this->wasAllocated){
+		if(this->wasAllocated_){
 				delete [] this->address_;
 		}
 	}

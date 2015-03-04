@@ -14,8 +14,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <cstdlib>
-#include <fstream>
-#include <iostream>
 #include <string>
 
 #include "type.hpp"
@@ -33,50 +31,43 @@ namespace mflash{
 
 			string file;
 			int64 offset;
-			int64 size;
+			int64 size_;
 
-			char *ptr;
-			char *current_ptr;
-			char *last_ptr;
+			T *ptr;
+			T *last_ptr;
 
 			int file_id;
 
 	//		bool reverse;
 		public:
-			MMapPointer(string file);
+			MMapPointer(string file, int64 offset, int64 size);
+			~MMapPointer();
+			T* address(){return ptr;}
+			int64 size(){return size_;}
+			T* get(int64 pos);
 
-			int64 position();
-			void set_position(int64 position);
-
-			T* next();
-			T* next(int64 step);
-
-			bool has_remain();
 			void close_pointer();
 	};
 
 	template <class T>
-	MMapPointer<T>::MMapPointer(string file){
+	MMapPointer<T>::MMapPointer(string file, int64 offset, int64 size){
+		int64 fsize = file_size(file);
 		this->file = file;
-		this->offset = 0;
+		this->offset = offset;
 
-		//open file to check the size
-		ifstream stream (this->file.c_str(), ios::in|ios::binary|ios::ate);
-		this->size = stream.tellg();
-		if(size == -1){
-				throw 12;
-		}
-		stream.close();
+		offset *= sizeof(T);
+		size *= sizeof(T);
 
-		//reverse = false;
+		size = min(fsize - offset, size);
+		this->size_ = size/ sizeof(T);
+
 
 		file_id = open(this->file.c_str(), O_RDONLY);
 		if (file_id == -1) {
 			perror("Error opening file for reading");
 			exit(EXIT_FAILURE);
 		}
-		ptr = (char*) mmap(0, size, PROT_READ, MAP_SHARED, file_id, 0);
-		current_ptr = ptr;
+		ptr = (T*) mmap(0, size, PROT_READ, MAP_SHARED, file_id, offset);
 		last_ptr = ptr + size;
 
 		if (ptr == MAP_FAILED) {
@@ -87,46 +78,18 @@ namespace mflash{
 
 	}
 
-	template <class T>
-	inline bool MMapPointer<T>::has_remain(){
-		return current_ptr < last_ptr;
-	}
 
 	/**
-	 * Read the next element and increase the position in sizeof(T) + step
+	 *
 	 */
 	template <class T>
-	inline T* MMapPointer<T>::next(int64 step){
-		char* ptr = current_ptr;
-		current_ptr += step + step;
-		return ptr;
-	}
-
-	/**
-	 * Read the next element and increase the position in sizeof(T)
-	 */
-	template <class T>
-	inline T* MMapPointer<T>::next(){
-		return next(ELEMENT_SIZE);
-	}
-
-
-	template <class T>
-	inline int64 MMapPointer<T>::position(){
-		return current_ptr - ptr;
+	inline T* MMapPointer<T>::get(int64 pos){
+		return ptr + pos;
 	}
 
 	template <class T>
-	inline void MMapPointer<T>::set_position(int64 position){
-		char* p = position + ptr;
-		if(p> ptr && p< last_ptr){
-				this->current_ptr = p;
-		}
-	}
-
-	template <class T>
-	inline void MMapPointer<T>::close_pointer(){
-		if (munmap(ptr, size) == -1) {
+	MMapPointer<T>::~MMapPointer(){
+		if (munmap(ptr, size_*sizeof(T)) == -1) {
 			perror("Error un-mmapping the file");
 		}
 		close(this->file_id);

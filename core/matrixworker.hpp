@@ -39,7 +39,7 @@ namespace mflash{
 	};
 
 	template <class V, class E>
-	MatrixWorker<V,E>::MatrixWorker(MAlgorithm<V,E> *algorithm, Matrix<V,E> *matrix, Array<V> *in_array, Array<V> *out_array){
+	inline MatrixWorker<V,E>::MatrixWorker(MAlgorithm<V,E> *algorithm, Matrix<V,E> *matrix, Array<V> *in_array, Array<V> *out_array){
 		this->algorithm = algorithm;
 		this->matrix = matrix;
 		this->out_array = out_array;

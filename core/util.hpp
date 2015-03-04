@@ -21,10 +21,15 @@ namespace mflash{
 
 	const int MFLASH_MATRIX_THREADS = 1;
 	const int MFLASH_VECTOR_THREADS = 1;
+	const double MAPPING_PERCENTAGE = 0.1;
 
 	const string FILE_SEPARATOR = "/";
 	const string DIRECTORY = ".G-FLASH";
 	const string GRAPH = "graph";
+
+	int64 get_mapping_limit(int64 block_size_bytes){
+		return 104857600;//MAPPING_PERCENTAGE * block_size_bytes;
+	}
 
 	string get_parent_directory(string graph) {
 		int64 pos = graph.find_last_of(FILE_SEPARATOR);
