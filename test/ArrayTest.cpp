@@ -11,9 +11,9 @@
 #include <iostream>
 
 #include "../core/malgorithm.hpp"
-#include "../core/matrix.hpp"
 #include "../core/matrixworker.hpp"
 #include "../core/operator.hpp"
+#include "../core/primitivematrix.hpp"
 #include "../core/primitivevector.hpp"
 #include "../core/type.hpp"
 #include "../core/vector.hpp"
@@ -165,9 +165,9 @@ int main(){
 	size = 1413511394;
 	bsize = 939524096;
 	SpMV<float, EmptyType> spmv;
-	Vector<float> *vector = new Vector<float>("/hugo/datasets/yahoo/v1", size, bsize);
-	Vector<float> *out = new Vector<float>("/hugo/datasets/yahoo/v2", size, bsize);
-
+	PrimitiveVector<float> *vector = new PrimitiveVector<float>("/hugo/datasets/yahoo/v1", size, bsize);
+	PrimitiveVector<float> *out = new PrimitiveVector<float>("/hugo/datasets/yahoo/v2", size, bsize);
+	vector->fill(1);
 	//value = vector->operate(op, *vector, 0, new Vector<float>[0]{/**vector*/});
 	//exit(0);
 //	value = vector->operate(op, *vector, 0, new Vector<float>[0]{/**vector*/});
@@ -178,14 +178,18 @@ int main(){
 	time_t timer1;
 	time_t timer2;
 	time(&timer1);
-	Matrix<float, EmptyType> matrix ("/hugo/datasets/yahoo/yahoo.bin", size, false, bsize, Mode::UNSAFE);
-
-	matrix.operate(spmv, *vector, *out);
+	PrimitiveMatrix< float, EmptyType> matrix ("/hugo/datasets/yahoo/yahoo.bin", size, false, bsize, Mode::UNSAFE);
+	matrix.multiply(*vector, *out);
+	//matrix.operate(spmv, *vector, *out);
 	time(&timer2);
 	time_t final = timer2 - timer1;
-
 	cout<<"Time: "<< final << " seconds";
-
+	time(&timer1);
+	matrix.multiply(*vector, *out);
+	//matrix.operate(spmv, *vector, *out);
+	time(&timer2);
+	final = timer2 - timer1;
+	cout<<"Time: "<< final << " seconds";
 /*
 
 
