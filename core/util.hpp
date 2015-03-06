@@ -8,8 +8,8 @@
 #ifndef MFLASH_CPP_CORE_UTIL_HPP_
 #define MFLASH_CPP_CORE_UTIL_HPP_
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
+#include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -28,16 +28,54 @@ namespace mflash{
 	const string GRAPH = "graph";
 
 	int64 get_mapping_limit(int64 block_size_bytes){
-		return 104857600;//MAPPING_PERCENTAGE * block_size_bytes;
+		return 1048576;//MAPPING_PERCENTAGE * block_size_bytes;
 	}
 
 	string get_parent_directory(string graph) {
 		int64 pos = graph.find_last_of(FILE_SEPARATOR);
 
-		return graph.substr(0, pos) + FILE_SEPARATOR + DIRECTORY;
+		return graph.substr(0, pos) + FILE_SEPARATOR;
 	}
 
 	string get_mflash_directory(string graph) {
+		string path = get_parent_directory(graph) + DIRECTORY;
+
+	/*	boost::filesystem::path dir(path);
+
+		if( !boost::filesystem::exists(path) ){
+				boost::filesystem::create_directories(path);
+		}*/
+		return path;
+	}
+
+	string get_block_file(string graph, int64 i, int64 j){
+		std::stringstream file;
+		file << get_mflash_directory(graph) << FILE_SEPARATOR << i << "_" << j << ".block";
+		return file.str();
+	}
+
+	bool exist_file(string file){
+		 ifstream f(file.c_str());
+			if (f.good()) {
+					f.close();
+					return true;
+			} else {
+					f.close();
+					return false;
+			}
+	}
+
+	int64 file_size(string file){
+		if (exist_file(file)){
+				ifstream in(file, std::ifstream::ate | std::ifstream::binary);
+				int64 size = in.tellg();
+				in.close();
+				return size;
+		}
+		return 0;
+	}
+
+	/*string get_mflash_directory(string graph) {
 		string path = get_parent_directory(graph);
 
 		boost::filesystem::path dir(path);
@@ -60,7 +98,7 @@ namespace mflash{
 
 	int64 file_size(string file){
 		return boost::filesystem::file_size(boost::filesystem::path(file));
-	}
+	}*/
 
 	void quicksort(double values[], int64 indexes[], int64 left, int64 right, bool asc){
 	  double pivot = values[left + (right - left) / 2];

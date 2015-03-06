@@ -13,10 +13,12 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <algorithm>
 #include <cstdlib>
 #include <string>
 
 #include "type.hpp"
+#include "util.hpp"
 
 using namespace std;
 
@@ -38,6 +40,8 @@ namespace mflash{
 
 			int file_id;
 
+			bool closed;
+
 	//		bool reverse;
 		public:
 			MMapPointer(string file, int64 offset, int64 size);
@@ -57,6 +61,8 @@ namespace mflash{
 
 		offset *= sizeof(T);
 		size *= sizeof(T);
+
+		closed = false;
 
 		size = min(fsize - offset, size);
 		this->size_ = size/ sizeof(T);
@@ -89,11 +95,22 @@ namespace mflash{
 
 	template <class T>
 	MMapPointer<T>::~MMapPointer(){
-		if (munmap(ptr, size_*sizeof(T)) == -1) {
-			perror("Error un-mmapping the file");
-		}
-		close(this->file_id);
+		close_pointer();
 	}
+
+	template <class T>
+	void MMapPointer<T>::close_pointer(){
+		if(!closed){
+			closed = true;
+			if (munmap(ptr, size_*sizeof(T)) == -1) {
+				perror("Error un-mmapping the file");
+			}
+			close(this->file_id);
+		}
+	}
+
+
+
 }
 
 #endif /* MFLASH_CPP_CORE_MMAPPOINTER_HPP_ */

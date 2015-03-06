@@ -46,6 +46,7 @@ namespace mflash{
 		public:
 			Vector(string file, int64 size, int64 elements_by_block);
 			int64 element_size(){ return sizeof(V);}
+			//int64 get_size(){ return size;}
 			string get_file(){return file;}
 			/*static V operate(Operator<V> &operator_, Vector<V> &output, Vector<V> &v1);
 			static V operate(Operator<V> &operator_, Vector<V> &output, Vector<V> &v1, Vector<V> &v2);*/

@@ -148,20 +148,25 @@ namespace mflash{
 		LOG (INFO) << "- MATRIX OPERATION STARTED";
 		while(iterator.has_next()){
 			Block block = iterator.next();
-			if(!block.exist()){
-					continue;
-			}
 
 			inOffset = block.get_col()*block_size;
 			LOG (INFO)<< "- PROCESSING BLOCK "<< block.get_col() << " -> " << block.get_row();
 
+			if(!block.exist()){
+					LOG (INFO)<< "- BLOCK "<< block.get_col() << " -> " << block.get_row() << " WITHOUT EDGES ";
+					LOG (INFO)<< "- " << block.get_file();
+					continue;
+			}
+
+
 			if(lastCol != block.get_col()){
 				lastCol = block.get_col();
 
-				if( block.size() < get_mapping_limit(block_size * sizeof(V))) {
+				if( false && block.size() < get_mapping_limit(block_size * sizeof(V))) {
 						if(!in->was_allocated()){
-								in->~Array();
+								in->free_memory();
 						}
+						mmappointer->close_pointer();
 						delete mmappointer;
 						delete in;
 

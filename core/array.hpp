@@ -49,6 +49,8 @@ namespace mflash{
 			V* get_element(int64 pos);
 			void set_element(int64 pos, V* value);
 			bool was_allocated(){return wasAllocated_;}
+			void free_memory();
+
 
 			static V operate(Operator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out);
 			static V operate(ZeroOperator<V> &operator_, Array<V> &left);
@@ -157,8 +159,14 @@ namespace mflash{
 
 	template <class V>
 	Array<V>::~Array (){
+		free_memory();
+	}
+
+	template <class V>
+	void Array<V>::free_memory(){
 		if(this->wasAllocated_){
 				delete [] this->address_;
+				this->wasAllocated_ = false;
 		}
 	}
 

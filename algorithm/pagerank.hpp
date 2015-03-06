@@ -17,8 +17,8 @@ namespace mflash{
 	#define RESISTANCE 0.85
 	#define N 1222
 
-	template <class V, class E>
-	class PageRank : public MAlgorithm<V, E>{
+	template <class V, class E = EmptyType>
+	class PageRankOperator : public MAlgorithm<V, E>{
 		public:
 			void initialize(MatrixWorker<V, E> &worker, Element<V> &out_element){
 				*(out_element.value) = 0;
@@ -34,5 +34,26 @@ namespace mflash{
 			}
 			bool isInitialized(){return true;}
 			bool isApplied(){return true;}
+
 	};
+
+	template <class V,class E>
+	class PageRank {
+      Matrix<V,E> *matrix;
+      int iterations;
+
+	  public:
+       PageRank(Matrix<V,E> &matrix, int iterations){
+         this->matrix = &matrix;
+         this->iterations = iterations;
+       }
+
+       void run();
+	};
+
+	template <class V,class E>
+	void PageRank<V,E>::run(){
+	  string path = get_parent_directory(matrix->get_file()) + FILE_SEPARATOR;
+
+	}
 }

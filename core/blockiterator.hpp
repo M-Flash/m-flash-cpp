@@ -9,7 +9,6 @@
 #define MFLASH_CPP_CORE_BLOCKITERATOR_HPP_
 
 #include <string>
-#include <boost/filesystem.hpp>
 
 using namespace std;
 
@@ -25,8 +24,8 @@ namespace mflash{
 				this->row = row;
 				this->col = col;
 			}
-			bool exist(){return boost::filesystem::exists(boost::filesystem::path(block_file));};
-			int64 size(){return boost::filesystem::file_size(boost::filesystem::path(block_file));};
+			bool exist(){return exist_file(block_file);};
+			int64 size(){return file_size(block_file);};
 			string get_file(){return block_file;}
 			int get_row(){return row;}
 			int get_col(){return col;}

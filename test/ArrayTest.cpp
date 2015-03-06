@@ -17,6 +17,7 @@
 #include "../core/primitivevector.hpp"
 #include "../core/type.hpp"
 #include "../core/vector.hpp"
+#include "../algorithm/lanczosSO.hpp"
 #include "../log/easylogging++.h"
 
 using namespace std;
@@ -163,11 +164,15 @@ int main(){
 	cout<< pvector.pnorm(2) << endl;
 
 	size = 1413511394;
-	bsize = 939524096;
+	bsize = 67108864;
 	SpMV<float, EmptyType> spmv;
-	PrimitiveVector<float> *vector = new PrimitiveVector<float>("/hugo/datasets/yahoo/v1", size, bsize);
-	PrimitiveVector<float> *out = new PrimitiveVector<float>("/hugo/datasets/yahoo/v2", size, bsize);
-	vector->fill(1);
+
+	PrimitiveVector<double> *vector = new PrimitiveVector<double>("/media/hugo/LINUX DATA/datasets/yahoo/undirected-1GB-double/v1", size, bsize);
+	PrimitiveVector<double> *out = new PrimitiveVector<double>("/media/hugo/LINUX DATA/datasets/yahoo/undirected-1GB-double/v2", size, bsize);
+
+
+
+	//vector->fill(1);
 	//value = vector->operate(op, *vector, 0, new Vector<float>[0]{/**vector*/});
 	//exit(0);
 //	value = vector->operate(op, *vector, 0, new Vector<float>[0]{/**vector*/});
@@ -178,8 +183,12 @@ int main(){
 	time_t timer1;
 	time_t timer2;
 	time(&timer1);
-	PrimitiveMatrix< float, EmptyType> matrix ("/hugo/datasets/yahoo/yahoo.bin", size, false, bsize, Mode::UNSAFE);
-	matrix.multiply(*vector, *out);
+	PrimitiveMatrix< double, EmptyType> matrix ("/hugo/datasets/undirected-1GB-double/yahoo", size, false, bsize, Mode::UNSAFE);
+	LanczosSO lanczos (matrix, 20, 6);
+	lanczos.run();
+
+
+	//matrix.multiply(*vector, *out);
 	//matrix.operate(spmv, *vector, *out);
 	time(&timer2);
 	time_t final = timer2 - timer1;
