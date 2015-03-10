@@ -35,8 +35,8 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.967027020" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.161280072" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker">
-								<option id="gnu.cpp.link.option.paths.1061196171" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths"/>
-								<option id="gnu.cpp.link.option.libs.445370948" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs"/>
+								<option id="gnu.cpp.link.option.paths.1061196171" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths"/>
+								<option id="gnu.cpp.link.option.libs.445370948" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.402353691" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

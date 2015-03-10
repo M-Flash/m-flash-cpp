@@ -9,8 +9,10 @@
 #define MFLASH_CPP_CORE_STREAMPROCESSOR_HPP_
 
 #include <string>
-#include "stream.hpp"
+
+#include "mapped_stream.hpp"
 #include "matrixworker.hpp"
+#include "type.hpp"
 
 
 namespace mflash{
@@ -21,22 +23,23 @@ namespace mflash{
 	template <class V, class E>
 	class StreamProcessor{
 		protected:
-			Stream *stream;
+			MappedStream *stream;
 			MatrixWorker<V,E> *worker;
 			int id;
+			BlockProperties *properties;
 
 
 		public:
-			StreamProcessor(string file, MatrixWorker<V,E> &worker, int id){
-				stream = new Stream(file);
+			StreamProcessor(string file, BlockProperties &properties, MatrixWorker<V,E> &worker, int id){
+				stream = new MappedStream(file, properties.offset, properties.size);
 				this->worker = &worker;
 				this->id = id;
+				this->properties = &properties;
 			}
 			virtual void call() = 0;
 
 			~StreamProcessor(){
 					delete stream;
-					delete worker;
 			}
 	};
 

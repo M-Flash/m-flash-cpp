@@ -14,6 +14,7 @@
 #include "../core/matrixworker.hpp"
 #include "../core/operator.hpp"
 #include "../core/primitivematrix.hpp"
+#include "../core/mapped_stream.hpp"
 #include "../core/primitivevector.hpp"
 #include "../core/type.hpp"
 #include "../core/vector.hpp"
@@ -126,12 +127,15 @@ int main(){
 	int64 size = 97;
 	int64 bsize = 10;
 	//float value;
-
+	cout<< sizeof(EmptyType)<< endl;
 	CustoOperator op;// = new CustoOperator;
 	CustomOperator2 op2;
 	CustomOperator3 op3;
 	CustomOperator4 op4;
 	PrintOperator prindst ;
+//cout<< sizeof(size_t)<< endl;
+	//MappedStream stw ("/hugo/datasets/undirected-1GB-double/.G-FLASH/0_0.block", 2927861104, 19558831);
+/*
 
 	PrimitiveVector<float> pvector("/tmp/v31", size, bsize);
 	PrimitiveVector<float> pvector2("/tmp/v42", size, bsize);
@@ -162,14 +166,15 @@ int main(){
 
 	pvector.multiply((float)(1/pvector.pnorm(2)));
 	cout<< pvector.pnorm(2) << endl;
+*/
 
 	size = 1413511394;
 	bsize = 67108864;
 	SpMV<float, EmptyType> spmv;
 
-	PrimitiveVector<double> *vector = new PrimitiveVector<double>("/media/hugo/LINUX DATA/datasets/yahoo/undirected-1GB-double/v1", size, bsize);
-	PrimitiveVector<double> *out = new PrimitiveVector<double>("/media/hugo/LINUX DATA/datasets/yahoo/undirected-1GB-double/v2", size, bsize);
-
+	PrimitiveVector<double> *vector = new PrimitiveVector<double>("/hugo/datasets/undirected-1GB-double/v1", size, bsize);
+	PrimitiveVector<double> *out = new PrimitiveVector<double>("/hugo/datasets/undirected-1GB-double/v2", size, bsize);
+//	vector->fill(1);
 
 
 	//vector->fill(1);
@@ -184,6 +189,8 @@ int main(){
 	time_t timer2;
 	time(&timer1);
 	PrimitiveMatrix< double, EmptyType> matrix ("/hugo/datasets/undirected-1GB-double/yahoo", size, false, bsize, Mode::UNSAFE);
+	//matrix.multiply(*vector, *out);
+
 	LanczosSO lanczos (matrix, 20, 6);
 	lanczos.run();
 

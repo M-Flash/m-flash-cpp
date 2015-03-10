@@ -24,11 +24,11 @@ using namespace std;
 
 namespace mflash{
 	/**
-	 * It creates a stream using memory mapping for reading files in sequential mode.
+	 * It creates a wrapper to map a region in memory with size independent of the architecture for random access
 	 * The first implementation suppose that we can map whole file.
 	 */
 	template <class T>
-	class MMapPointer{
+	class RandomMMapPointer{
 			const static int64 ELEMENT_SIZE = (int64)sizeof(T);
 
 			string file;
@@ -44,8 +44,8 @@ namespace mflash{
 
 	//		bool reverse;
 		public:
-			MMapPointer(string file, int64 offset, int64 size);
-			~MMapPointer();
+			RandomMMapPointer(string file, int64 offset, int64 size);
+			~RandomMMapPointer();
 			T* address(){return ptr;}
 			int64 size(){return size_;}
 			T* get(int64 pos);
@@ -54,7 +54,7 @@ namespace mflash{
 	};
 
 	template <class T>
-	MMapPointer<T>::MMapPointer(string file, int64 offset, int64 size){
+	RandomMMapPointer<T>::RandomMMapPointer(string file, int64 offset, int64 size){
 		int64 fsize = file_size(file);
 		this->file = file;
 		this->offset = offset;
@@ -89,17 +89,17 @@ namespace mflash{
 	 *
 	 */
 	template <class T>
-	inline T* MMapPointer<T>::get(int64 pos){
+	inline T* RandomMMapPointer<T>::get(int64 pos){
 		return ptr + pos;
 	}
 
 	template <class T>
-	MMapPointer<T>::~MMapPointer(){
+	RandomMMapPointer<T>::~RandomMMapPointer(){
 		close_pointer();
 	}
 
 	template <class T>
-	void MMapPointer<T>::close_pointer(){
+	void RandomMMapPointer<T>::close_pointer(){
 		if(!closed){
 			closed = true;
 			if (munmap(ptr, size_*sizeof(T)) == -1) {

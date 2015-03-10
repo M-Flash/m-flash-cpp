@@ -26,6 +26,10 @@ namespace mflash{
 	const string FILE_SEPARATOR = "/";
 	const string DIRECTORY = ".G-FLASH";
 	const string GRAPH = "graph";
+  const string STREAM_FILE = "edge_stream";
+
+
+
 
 	int64 get_mapping_limit(int64 block_size_bytes){
 		return 1048576;//MAPPING_PERCENTAGE * block_size_bytes;
@@ -47,6 +51,10 @@ namespace mflash{
 		}*/
 		return path;
 	}
+
+	string get_stream_file(string graph) {
+    return get_parent_directory(graph) + DIRECTORY + FILE_SEPARATOR + STREAM_FILE;
+  }
 
 	string get_block_file(string graph, int64 i, int64 j){
 		std::stringstream file;
@@ -75,6 +83,19 @@ namespace mflash{
 		return 0;
 	}
 
+	ios::openmode get_file_properties(string file, bool write){
+
+    if(!write){
+        return ios::in|ios::binary|ios::ate;
+    }
+
+    ios::openmode properties = ios::out|ios::binary|ios::ate;
+    if(exist_file(file)){
+        properties |= ios::in;
+    }
+
+    return properties;
+  }
 	/*string get_mflash_directory(string graph) {
 		string path = get_parent_directory(graph);
 

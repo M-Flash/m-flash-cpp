@@ -37,5 +37,23 @@ namespace mflash{
 		VECTOR_REPLICATION,
 		//ATOMIC
 	};
+
+	enum BlockType{
+	  M_FLASH,
+	  X_STREAM
+	};
+
+  struct BlockProperties{
+    BlockType type;
+    int64 offset;
+    int64 size;
+
+
+    BlockProperties(BlockType type, int64 offset, int64 size){
+      this->type = type;
+      this->offset = offset;
+      this->size = size;
+    }
+  };
 }
 #endif /* MFLASH_CPP_CORE_TYPE_HPP_ */
