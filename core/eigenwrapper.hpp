@@ -12,17 +12,17 @@
 
 typedef Eigen::MatrixXd mat;
 
-inline void array2mat(int64 n, double * array, mat &m){
+inline void mat2array(mat &m, int64 n, double * array){
 	memcpy (array, m.data(), n * sizeof(double));
 }
 
-inline void mat2array(mat &m, double * array,int64 n=0){
-	if(n==0) n = m.cols() * m.rows();
+inline void array2mat(int64 n, double * array, mat &m){
+	if(n<=0 || n>m.cols() * m.rows()) n = m.cols() * m.rows();
 	memcpy (m.data(), array, n * sizeof(double));
 }
 
-inline void mat2array(mat *m, double * array,int64 n=0){
-	mat2array(*m, array, n);
+inline void array2mat(int64 n, double* array, mat *m){
+  array2mat(n, array, *m);
 }
 
 inline void swap_cols(mat &m , int64 col_ids[], int n_cols=0){
