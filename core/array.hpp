@@ -422,7 +422,7 @@ namespace mflash{
 				out.id = this->left_offset;
 
 				element1.value = this->left->get_element(this->left_offset);
-				element2.value = this->left->get_element(this->right_offset);
+				element2.value = this->right->get_element(this->right_offset);
 				operator_->apply(element1, element2, out);
 				operator_->sum(value, tmp, value);
 
