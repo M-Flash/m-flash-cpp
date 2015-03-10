@@ -226,7 +226,7 @@ namespace mflash{
 		}
 
 		ifstream *file = new ifstream(this->file, ios::in|ios::binary|ios::ate);
-		if(file_size(this->file) > offset+size){
+		if(file_size(this->file) >= offset+size){
 			file->seekg (offset, ios::beg);
 			file->read( (char*)address, size);
 		}
