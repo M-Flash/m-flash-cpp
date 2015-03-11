@@ -107,8 +107,8 @@ namespace mflash{
 
 				//Max singular value
 				double max_sv = abs((double)evalues(0));
-				for (int i = 1; i <= i; i++){
-						max_sv = max(max_sv, abs((double)evalues(i)));
+				for (int j = 1; j <= i; j++){
+						max_sv = max(max_sv, abs((double)evalues(j)));
 				}
 				LOG (INFO) << "Max Singular Value = " << max_sv;
 
