@@ -213,7 +213,7 @@ namespace mflash{
 				LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << outAccumulator->offset() << " AND " << outAccumulator->offset() + outAccumulator->limit()-1 << " LOADED";
 
 				//initializing out_vector values
-				if(algorithm.isInitialized()){
+				if(algorithm.is_initialized()){
 						LOG (INFO) << "--- INITIALIZING ON OUT-ELEMENT STATES BEETWEEN " << outAccumulator->offset() << " AND " << outAccumulator->offset() + outAccumulator->limit()-1;
 						outAccumulator->operate(initialize_operator, *outAccumulator, *outAccumulator, *outAccumulator);
 						LOG (INFO) << "--- OUT-ELEMENT STATES INITIALIZED";
@@ -263,7 +263,7 @@ namespace mflash{
 				//stream.close_stream();
 		}
 
-		if(algorithm.isApplied()){
+		if(algorithm.is_applied()){
 				LOG (INFO) << "--- APPLYING ON OUT-ELEMENT STATES BEETWEEN " << outAccumulator->offset() << " AND " << outAccumulator->offset() + outAccumulator->limit()-1 << " STORED";
 				outAccumulator->operate(apply_operator, *outAccumulator, *outAccumulator, *outAccumulator);
 				LOG (INFO) << "--- OUT-ELEMENT STATES APPLYED";
