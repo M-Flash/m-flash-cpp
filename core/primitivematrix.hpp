@@ -16,6 +16,9 @@ namespace mflash{
 	class SpMVMAlgorithmPrimitiveMatrix;
 
 	template <class V, class E>
+	class SpMVMAlgorithmWeightedPrimitiveMatrix;
+
+	template <class V, class E = EmptyType>
 	class PrimitiveMatrix : public Matrix<V,E>{
 
 		public:
@@ -25,8 +28,19 @@ namespace mflash{
 
 	template<class V, class E>
 	inline void PrimitiveMatrix<V,E>::multiply(PrimitiveVector<V> &inVector, PrimitiveVector<V> &outVector){
-		SpMVMAlgorithmPrimitiveMatrix<V,E> spvm;
-		this->operate(spvm, inVector, outVector);
+
+	  //check if the E type is weighted
+	  E tmp;
+	  EmptyType * emptyType = dynamic_cast<EmptyType*> (&tmp);
+	  if(emptyType != 0){
+	      SpMVMAlgorithmPrimitiveMatrix<V,E> spvm;
+	      this->operate(spvm, inVector, outVector);
+	  }else{
+	      SpMVMAlgorithmWeightedPrimitiveMatrix<V,E> spvmweighted;
+	      this->operate(spvmweighted, inVector, outVector);
+	  }
+
+
 	}
 
 
@@ -46,12 +60,33 @@ namespace mflash{
 		inline  bool isInitialized(){
 			return true;
 		}
-		inline  bool isApplied(){
+		inline  bool is_applied(){
 			return false;
 		}
 
 	};
 
+
+	template <class V, class E>
+    class SpMVMAlgorithmWeightedPrimitiveMatrix : public MAlgorithm<V,E>{
+    inline void initialize(MatrixWorker<V, E> &worker, Element<V> &out_element){
+      *(out_element.value) = 0;
+    }
+    inline void gather(MatrixWorker<V, E> &worker, Element<V> &in_element, Element<V> &out_element, E &edge_data){
+      *(out_element.value) += *(in_element.value) * edge_data;
+    }
+    inline  void sum(Element<V> &accumulator1, Element<V> &accumulator2, Element<V> &out_accumulator){
+      *(out_accumulator.value) = *(accumulator1.value) + *(accumulator2.value);
+    }
+    inline  void apply(MatrixWorker<V, E> &worker, Element<V> &out_element) {}
+    inline  bool isInitialized(){
+      return true;
+    }
+    inline  bool is_applied(){
+      return false;
+    }
+
+  };
 }
 
 #endif /* CORE_PRIMITIVEMATRIX_HPP_ */
