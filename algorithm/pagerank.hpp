@@ -32,8 +32,8 @@ namespace mflash{
 			void apply(MatrixWorker<V, E> &worker, Element<V> &out_element){
 				*(out_element.value) += (1 - RESISTANCE)/N;
 			}
-			bool isInitialized(){return true;}
-			bool isApplied(){return true;}
+			bool is_initialized(){return true;}
+			bool is_applied(){return true;}
 
 	};
 
