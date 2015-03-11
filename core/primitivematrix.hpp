@@ -28,19 +28,8 @@ namespace mflash{
 
 	template<class V, class E>
 	inline void PrimitiveMatrix<V,E>::multiply(PrimitiveVector<V> &inVector, PrimitiveVector<V> &outVector){
-
-	  //check if the E type is weighted
-	  E tmp;
-	  EmptyType * emptyType = dynamic_cast<EmptyType*> (&tmp);
-	  if(emptyType != 0){
-	      SpMVMAlgorithmPrimitiveMatrix<V,E> spvm;
-	      this->operate(spvm, inVector, outVector);
-	  }else{
-	      SpMVMAlgorithmWeightedPrimitiveMatrix<V,E> spvmweighted;
-	      this->operate(spvmweighted, inVector, outVector);
-	  }
-
-
+    SpMVMAlgorithmPrimitiveMatrix<V,E> spvm;
+    this->operate(spvm, inVector, outVector);
 	}
 
 
@@ -51,13 +40,17 @@ namespace mflash{
 			*(out_element.value) = 0;
 		}
 		inline void gather(MatrixWorker<V, E> &worker, Element<V> &in_element, Element<V> &out_element, E &edge_data){
-			*(out_element.value) += *(in_element.value);
+      #if (E == EmptyType)
+          *(out_element.value) += *(in_element.value);
+      #else
+          *(out_element.value) += *(in_element.value) * edge_data;
+      #endif
 		}
 		inline  void sum(Element<V> &accumulator1, Element<V> &accumulator2, Element<V> &out_accumulator){
 			*(out_accumulator.value) = *(accumulator1.value) + *(accumulator2.value);
 		}
 		inline  void apply(MatrixWorker<V, E> &worker, Element<V> &out_element) {}
-		inline  bool isInitialized(){
+		inline  bool is_initialized(){
 			return true;
 		}
 		inline  bool is_applied(){
@@ -65,28 +58,6 @@ namespace mflash{
 		}
 
 	};
-
-
-	template <class V, class E>
-    class SpMVMAlgorithmWeightedPrimitiveMatrix : public MAlgorithm<V,E>{
-    inline void initialize(MatrixWorker<V, E> &worker, Element<V> &out_element){
-      *(out_element.value) = 0;
-    }
-    inline void gather(MatrixWorker<V, E> &worker, Element<V> &in_element, Element<V> &out_element, E &edge_data){
-      *(out_element.value) += *(in_element.value) * edge_data;
-    }
-    inline  void sum(Element<V> &accumulator1, Element<V> &accumulator2, Element<V> &out_accumulator){
-      *(out_accumulator.value) = *(accumulator1.value) + *(accumulator2.value);
-    }
-    inline  void apply(MatrixWorker<V, E> &worker, Element<V> &out_element) {}
-    inline  bool isInitialized(){
-      return true;
-    }
-    inline  bool is_applied(){
-      return false;
-    }
-
-  };
 }
 
 #endif /* CORE_PRIMITIVEMATRIX_HPP_ */
