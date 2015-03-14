@@ -8,17 +8,17 @@
 #ifndef MFLASH_CPP_CORE_MMAPPOINTER_HPP_
 #define MFLASH_CPP_CORE_MMAPPOINTER_HPP_
 
-#include <bits/mman-linux.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
 #include <string>
+#include <sys/mman.h>
 
 #include "type.hpp"
 #include "util.hpp"
+
 
 using namespace std;
 

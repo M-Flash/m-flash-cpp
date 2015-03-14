@@ -1,5 +1,5 @@
 /*
- * array.hpp
+ * GenericArray.hpp
  *
  *  Created on: Feb 28, 2015
  *      Author: Hugo Gualdron
@@ -17,47 +17,76 @@
  * The implementation suppose that the architecture is 64bits then we don't need an set of buffer to map all the region on memory.
  */
 namespace mflash{
-	template <class V> class Array{
-		V* address_;
-		int64 limit_;
-		int64 size_;
-		int64 offset_;
-		V* offset_address;
 
-		bool wasAllocated_;
+	class GenericArray{
+	  protected:
+      char* address_;
+      int64 limit_;
+      int64 element_size_;
+      int64 size_;
+      int64 offset_;
+      char* offset_address;
+
+      bool wasAllocated_;
+
+      int64 element_shift;
+      bool element_shifted;
 
 		void init();
 
 		public:
-
-
-			Array (int64 size, int64 offset);
-			Array (int64 size) : Array(size, 0){}
+		  GenericArray (){};
+			GenericArray (int64 element_size, int64 size, int64 offset);
+			GenericArray (int64 element_size, int64 size) : GenericArray(element_size, size, 0){}
 			/**
-			 * Create an array pointer using starting in address to size + adress.
+			 * Create an GenericArray pointer using starting in address to size + adress.
 			 * The offset is the index offset that represent the first position.
 			 */
-			Array (V* address, int64 size, int64 offset);
-			~Array ();
+			GenericArray (char* address, int64 element_size, int64 size, int64 offset);
+			virtual ~GenericArray ();
 
-			V* address(){return address_;}
+			char* address(){return address_;}
 			int64 size ();
 			int64 limit ();
 			void set_limit (int64 limit);
 			int64 offset ();
 			void set_offset(int64 offset);
-			V* get_element(int64 pos);
-			void set_element(int64 pos, V* value);
+			char* get_element(int64 pos);
+			void set_element(int64 pos, char* value);
 			bool was_allocated(){return wasAllocated_;}
 			void free_memory();
 
+	};
 
-			static V operate(Operator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out);
-			static V operate(ZeroOperator<V> &operator_, Array<V> &left);
-			static V operate(UnaryOperator<V> &operator_, Array<V> &left, Array<V> &out);
-			static V operate(BinaryOperator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out);
-			static V operate(UnaryReducer<V> &operator_, Array<V> &left);
-			static V operate(BinaryReducer<V> &operator_, Array<V> &left, Array<V> &right);
+	template <class V>
+	class Array : public GenericArray{
+	  protected:
+	    V* address_wrapped;
+	    V* offset_address_wrapped;
+
+	  public:
+
+	    Array (int64 size, int64 offset): GenericArray(sizeof(V), size, offset){
+	      this->address_wrapped = (V*)address_;
+	      this->offset_address_wrapped = (V*)offset_address;
+	    }
+
+	    Array (int64 size) : Array(size, 0){}
+
+
+      V* address(){ return  address_wrapped;}
+      V* get_element(int64 pos);
+      void set_element(int64 pos, V* value);
+      void set_offset(int64 offset);
+
+
+      static V operate(Operator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out);
+      static V operate(ZeroOperator<V> &operator_, Array<V> &left);
+      static V operate(UnaryOperator<V> &operator_, Array<V> &left, Array<V> &out);
+      static V operate(BinaryOperator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out);
+      static V operate(UnaryReducer<V> &operator_, Array<V> &left);
+      static V operate(BinaryReducer<V> &operator_, Array<V> &left, Array<V> &right);
+
 	};
 
 	template <class V>
@@ -130,26 +159,37 @@ namespace mflash{
 
 
 	/*
-		Array
+		GenericArray
 	*/
 
 	/**
-	 * @param is the number of items on the array.
+	 * @param is the number of items on the GenericArray.
 	 */
-	template <class V>
-	Array<V>::Array (int64 size, int64 offset){
-		this->address_ = new V[size];
+	GenericArray::GenericArray (int64 element_size, int64 size, int64 offset){
+		this->address_ = new char[element_size * size];
 		this->wasAllocated_ = true;
 		this->size_ = size;
+		this->element_size_ = element_size;
+
+		int64 value = log2(element_size);
+
+		if( pow(2, value) == element_size){
+		    element_shifted = true;
+		    element_shift = value;
+		}else{
+		    element_shift = 0;
+		    element_shifted = false;
+		}
+
+
 		set_offset(offset);
 		set_limit(size);
 	}
 
 	/**
-	 * @param is the number of items on the array.
+	 * @param is the number of items on the GenericArray.
 	 */
-	template <class V>
-	Array<V>::Array (V* address, int64 size, int64 offset){
+	GenericArray::GenericArray (char* address, int64 element_size, int64 size, int64 offset){
 		this->address_ = address;
 		this->wasAllocated_ = false;
 		this->size_ = size;
@@ -157,60 +197,72 @@ namespace mflash{
 		set_limit(size);
 	}
 
-	template <class V>
-	Array<V>::~Array (){
+	GenericArray::~GenericArray (){
 		free_memory();
 	}
 
-	template <class V>
-	void Array<V>::free_memory(){
+	inline void GenericArray::free_memory(){
 		if(this->wasAllocated_){
 				delete [] this->address_;
 				this->wasAllocated_ = false;
 		}
 	}
 
-	template <class V>
-	void Array<V>::set_limit(int64 limit){
+	inline void GenericArray::set_limit(int64 limit){
 		if( limit <0 || limit>size_){
 				throw 20;//MException("Limit value out off the interval " + 0 + " and " + size);
 		}
 		this->limit_ = limit;
 	}
 
-	template <class V>
-	void Array<V>::set_offset(int64 offset){
+	inline void GenericArray::set_offset(int64 offset){
 		this->offset_ = offset;
-		this->offset_address = address_ - offset;
+		this->offset_address = address_ - offset * element_size_;
 	}
 
-	template <class V>
-	int64 Array<V>::offset(){
+	inline int64 GenericArray::offset(){
 		return this->offset_;
 	}
 
-	template <class V>
-	int64 Array<V>::limit(){
+	inline int64 GenericArray::limit(){
 		return this->limit_;
 	}
 
-	template <class V>
-	int64 Array<V>::size(){
+	inline int64 GenericArray::size(){
 		return this->size_;
 	}
 
-	template <class V> inline
-	V* Array<V>::get_element(int64 pos){
-		return offset_address+pos;
+	inline char* GenericArray::get_element(int64 pos){
+		return offset_address + (element_shifted? pos << element_shift: pos * element_size_ );
 	}
 
-	template <class V> inline
-	void Array<V>::set_element(int64 pos, V* value){
-		*(offset_address+pos) = *value;
+	inline void GenericArray::set_element(int64 pos, char* value){
+	   *(offset_address + (element_shifted? pos << element_shift: pos * element_size_ )) = *value;
 	}
+
+  /*
+    Array
+  */
 
 	template <class V>
-		V Array<V>::operate(Operator<V> &operator_, Array<V> &left,  Array<V> &right,  Array<V> &out){
+  inline V* Array<V>::get_element(int64 pos){
+    return offset_address_wrapped + pos;
+  }
+
+	template <class V>
+  inline void Array<V>::set_element(int64 pos, V* value){
+     *(offset_address_wrapped + pos) = *value;
+	}
+
+  template <class V>
+  inline void Array<V>::set_offset(int64 pos){
+     GenericArray::set_offset(pos);
+     offset_address_wrapped = (V*)offset_address;
+  }
+
+
+	template <class V>
+	V Array<V>::operate(Operator<V> &operator_, Array<V> &left,  Array<V> &right,  Array<V> &out){
 			UnaryReducer<V> * unary_reducer_ptr = dynamic_cast<UnaryReducer<V> *> (&operator_) ;
 			BinaryReducer<V> * binary_reducer_ptr = dynamic_cast<BinaryReducer<V> *> (&operator_);
 			ZeroOperator<V> * zero_ptr = dynamic_cast<ZeroOperator<V> *> (&operator_);
@@ -273,6 +325,7 @@ namespace mflash{
 		BinaryReducerThreadDataType<V> t (0, operator_, left, right, left);
 		return t.call();
 	}
+
 
 	/*
 		ThreadDataType

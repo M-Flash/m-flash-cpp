@@ -11,7 +11,23 @@
 typedef long long int64;
 
 namespace mflash{
-	template <class V>
+
+/*  template <class V>
+	class AbstractElement{
+    public:
+      int64 id;
+      V* value;
+
+      void set_value(V value){
+        *(this->value) = value;
+      }
+
+      V& get_value(){
+        return value;
+      }
+  };*/
+
+  template <class V>
 	class Element{
 		public:
 			int64 id;
@@ -20,10 +36,9 @@ namespace mflash{
 			void set_value(V value){
 				*(this->value) = value;
 			}
-
 	};
 
-	class EmptyType{};
+	class EmptyField{};
 
 
 	enum ElementIdSize{
@@ -37,6 +52,12 @@ namespace mflash{
 		VECTOR_REPLICATION,
 		//ATOMIC
 	};
+
+  enum FieldType{
+    SOURCE,
+    DESTINATION
+  };
+
 
 	enum BlockType{
 	  M_FLASH,

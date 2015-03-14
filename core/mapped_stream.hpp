@@ -56,6 +56,10 @@ namespace mflash{
       int64 position();
       void set_position(int64 position);
 
+      void* current_pointer(){
+        return current_ptr;
+      }
+
       char next();
       int next_int();
       int next_int(int64 step);
@@ -114,7 +118,7 @@ namespace mflash{
   }
 
   inline bool MappedStream::has_remain(){
-    return current_ptr < last_ptr;
+    return current_ptr != last_ptr;
   }
 
   inline char* MappedStream::next(int64 bytes, int64 step){

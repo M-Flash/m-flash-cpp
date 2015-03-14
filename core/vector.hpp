@@ -8,13 +8,11 @@
 #ifndef MFLASH_CPP_CORE_VECTOR_HPP_
 #define MFLASH_CPP_CORE_VECTOR_HPP_
 
-#include <bits/vector.tcc>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <string>
-#include <vector>
 
 #include "../log/easylogging++.h"
 
@@ -29,8 +27,17 @@ using namespace std;
 
 namespace mflash{
 
+  class AbstractVector {
+    public:
+      virtual int64 element_size() = 0;
+      virtual string get_file() = 0;
+      virtual int64 load_region(int64 offset, int64 size, void* address) = 0;
+      virtual void store_region(int64 offset, int64 size, void* address) = 0;
+    //  virtual void* new_intance() = 0;
+  };
+
 	template <class V>
-	class Vector{
+	class Vector : public AbstractVector{
 		protected:
 			string file;
 			int64 size;
@@ -40,6 +47,11 @@ namespace mflash{
 			std::vector< OperationListener* > listeners;
 
 			void invoke_operation_listener(int vector_id);
+
+			/*void* new_intance(){
+			  V* value = new V;
+			  return value;
+			}*/
 
 			static V operate(Operator<V> &operator_, Vector<V> &output,  int n, Vector<V>* vectors[]);
 
@@ -51,8 +63,8 @@ namespace mflash{
 			/*static V operate(Operator<V> &operator_, Vector<V> &output, Vector<V> &v1);
 			static V operate(Operator<V> &operator_, Vector<V> &output, Vector<V> &v1, Vector<V> &v2);*/
 
-			int64 load_region(int64 offset, int64 size, V* address);
-			void store_region(int64 offset, int64 size, V* address);
+			int64 load_region(int64 offset, int64 size, void* address);
+			void store_region(int64 offset, int64 size, void* address);
 
 			void add_listener(OperationListener *listener );
 			void remove_listener(OperationListener *listener );
@@ -215,7 +227,7 @@ namespace mflash{
 
 
 	template <class V>
-	inline int64 Vector<V>::load_region(int64 offset, int64 size, V* address){
+	inline int64 Vector<V>::load_region(int64 offset, int64 size, void* address){
 		int64 element_size = this->element_size();
 		size = min(size, this->size - offset) * element_size;
 
@@ -246,7 +258,7 @@ namespace mflash{
 	}
 
 	template <class V>
-	inline void Vector<V>::store_region(int64 offset, int64 size, V* address){
+	inline void Vector<V>::store_region(int64 offset, int64 size, void* address){
 		int64 element_size = this->element_size();
 		size = min(size, this->size - offset) * element_size;
 		offset *= element_size;

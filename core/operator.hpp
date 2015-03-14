@@ -14,38 +14,38 @@
 
 namespace mflash{
 
-	template <class V>
+  template <class V>
 	class Operator{virtual void dummy(){}
 	};
 
-	template <class V, class E>
+	/*template <class V, class E>
 	class EdgeOperator: public Operator<V>{
 	public:
 		virtual void gather(Element<V> &in, Element<V> &out, E &edge) = 0;
-	};
+	};*/
 
-	template <class V>
+  template <class V>
 	class ZeroOperator: public Operator<V>{
 	public:
 		virtual void apply(Element<V> &element) = 0;
 	};
 
-	template <class V>
+  template <class V>
 	class ZeroOperatorExtended: public Operator<V>{
 	public:
 		virtual V apply() = 0;
 	};
 
-	template <class V>
+  template <class V>
 	class UnaryOperator: public Operator<V>{
 	public:
 		virtual void apply(Element<V> & element, Element<V>& out) = 0;
 	};
 
-	template <class V>
-	class BinaryOperator: public Operator<V>{
+  template <class V1, class V2 = V1, class VOut = V1>
+	class BinaryOperator: public Operator<VOut>{
 	public:
-		virtual void apply(Element<V> &left, Element<V> &right, Element<V> &out) = 0;
+		virtual void apply(Element<V1> &left, Element<V2> &right, Element<VOut> &out) = 0;
 	};
 
 	template <class V>
@@ -61,8 +61,8 @@ namespace mflash{
 	class UnaryReducer : public Reducer<V>, public UnaryOperator<V>{
 	};
 
-	template <class V>
-	class BinaryReducer: public Reducer<V>, public BinaryOperator<V>{
+	template <class V1, class V2=V1, class VOut=V1>
+	class BinaryReducer: public Reducer<VOut>, public BinaryOperator<V1, V2, VOut>{
 	};
 
 

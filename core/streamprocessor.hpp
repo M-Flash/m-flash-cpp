@@ -11,30 +11,30 @@
 #include <string>
 
 #include "mapped_stream.hpp"
-#include "matrixworker.hpp"
 #include "type.hpp"
-
+#include "edgeprocessor.hpp"
 
 namespace mflash{
 
-	template <class V, class E>
-	class MatrixWorker;
-
-	template <class V, class E>
-	class StreamProcessor{
+  class StreamProcessor{
 		protected:
 			MappedStream *stream;
-			MatrixWorker<V,E> *worker;
 			int id;
 			BlockProperties *properties;
-
+			int64 edge_data_size;
+			bool transpose;
+			ElementIdSize *element_id_size;
+			AbstractProcessor *edge_processor;
 
 		public:
-			StreamProcessor(string file, BlockProperties &properties, MatrixWorker<V,E> &worker, int id){
+			StreamProcessor(string file, BlockProperties &properties, int64 edge_data_size, int id, bool transpose, ElementIdSize &element_id_size, AbstractProcessor *edge_processor){
 				stream = new MappedStream(file, properties.offset, properties.size);
-				this->worker = &worker;
+				this->edge_data_size = edge_data_size;
 				this->id = id;
 				this->properties = &properties;
+				this->transpose = transpose;
+				this->element_id_size = &element_id_size;
+				this->edge_processor = edge_processor;
 			}
 			virtual void call() = 0;
 

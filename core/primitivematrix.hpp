@@ -11,45 +11,48 @@
 #include "matrix.hpp"
 #include "primitivevector.hpp"
 
+
 namespace mflash{
-	template <class V, class E>
-	class SpMVMAlgorithmPrimitiveMatrix;
 
-	template <class V, class E>
-	class SpMVMAlgorithmWeightedPrimitiveMatrix;
+  template <class VSource, class VDestination, class E>
+  class SpMVMAlgorithmPrimitiveMatrix;
 
-	template <class V, class E = EmptyType>
-	class PrimitiveMatrix : public Matrix<V,E>{
+
+	template <class E>
+	class PrimitiveMatrix : public Matrix<E>{
 
 		public:
-			PrimitiveMatrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode) : Matrix<V,E>(file, size, transpose, element_by_block, mode){}
+			PrimitiveMatrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode) : Matrix<E>(file, size, transpose, element_by_block, mode){}
+
+			template<class V>
 			void multiply(PrimitiveVector<V> &inVector, PrimitiveVector<V> &outVector);
 	};
 
-	template<class V, class E>
-	inline void PrimitiveMatrix<V,E>::multiply(PrimitiveVector<V> &inVector, PrimitiveVector<V> &outVector){
-    SpMVMAlgorithmPrimitiveMatrix<V,E> spvm;
-    this->operate(spvm, inVector, outVector);
+	template<class E>
+	template<class V>
+	inline void PrimitiveMatrix<E>::multiply(PrimitiveVector<V> &inVector, PrimitiveVector<V> &outVector){
+    SpMVMAlgorithmPrimitiveMatrix<V,V,E> spvm;
+    Matrix<E>::operate(spvm, inVector, outVector);
 	}
 
 
 
-	template <class V, class E>
-		class SpMVMAlgorithmPrimitiveMatrix : public MAlgorithm<V,E>{
-		inline void initialize(MatrixWorker<V, E> &worker, Element<V> &out_element){
+	template <class VSource, class VDestination, class E>
+	class SpMVMAlgorithmPrimitiveMatrix : public MAlgorithm<VSource, VDestination,E>{
+		inline void initialize(MatrixWorker<E> &worker, Element<VDestination> &out_element){
 			*(out_element.value) = 0;
 		}
-		inline void gather(MatrixWorker<V, E> &worker, Element<V> &in_element, Element<V> &out_element, E &edge_data){
+		inline void gather(MatrixWorker<E> &worker, Element<VSource> &in_element, Element<VDestination> &out_element, E &edge_data){
       #if (E == EmptyType)
           *(out_element.value) += *(in_element.value);
       #else
           *(out_element.value) += *(in_element.value) * edge_data;
       #endif
 		}
-		inline  void sum(Element<V> &accumulator1, Element<V> &accumulator2, Element<V> &out_accumulator){
+		inline  void sum(Element<VDestination> &accumulator1, Element<VDestination> &accumulator2, Element<VDestination> &out_accumulator){
 			*(out_accumulator.value) = *(accumulator1.value) + *(accumulator2.value);
 		}
-		inline  void apply(MatrixWorker<V, E> &worker, Element<V> &out_element) {}
+		inline  void apply(MatrixWorker<E> &worker, Element<VDestination> &out_element) {}
 		inline  bool is_initialized(){
 			return true;
 		}
@@ -59,5 +62,6 @@ namespace mflash{
 
 	};
 }
+
 
 #endif /* CORE_PRIMITIVEMATRIX_HPP_ */

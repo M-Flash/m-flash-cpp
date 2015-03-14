@@ -17,27 +17,27 @@
 #include "matrixworker.hpp"
 #include "streamprocessor.hpp"
 #include "type.hpp"
-
+/*
 namespace mflash{
 
-	template <class V, class E>
-	class EdgeListWriter: public StreamProcessor<V,E>{
+	template <class VSource, class VDestination, class E>
+	class EdgeListWriter: public StreamProcessor<E>{
 
-	  /**
+	  *
 	   * Position used to shift in the initial position on the file and store all blocks using only one file. We must add support for block with edge values!!!!!
-	   */
+
 	  DirectStreamWriter* writer;
 
 
 		public:
-	    EdgeListWriter(DirectStreamWriter *writer, string block_file, BlockProperties properties, MatrixWorker<V,E> &worker) : StreamProcessor<V,E>(block_file, properties, worker, 0){
+	    EdgeListWriter(DirectStreamWriter *writer, string block_file, BlockProperties properties, MatrixWorker<E> &worker) : StreamProcessor<E>(block_file, properties, worker, 0){
 	      this->writer = writer;
 	    }
 			void call();
 	};
 
-	template <class V, class E>
-	inline void EdgeListWriter<V,E>::call(){
+	template <class VSource, class VDestination, class E>
+	inline void EdgeListWriter<VSource, VDestination, E>::call(){
 			//E edge_data;
 			const ElementIdSize id_size = this->worker->get_matrix().get_element_id_size();
 			const bool transpose = this->worker->get_matrix().is_transpose();
@@ -78,6 +78,6 @@ namespace mflash{
 			//writer->close_stream();
 			this->stream->close_stream();
 		}
-}
+}*/
 
 #endif /* MFLASH_CPP_CORE_EDGELISTREWRITER_HPP_ */

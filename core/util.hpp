@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 
 #include "type.hpp"
 
@@ -28,8 +29,9 @@ namespace mflash{
 	const string GRAPH = "graph";
   const string STREAM_FILE = "edge_stream";
 
+  const int64 DEFAULT_BYTES_BLOCK = sizeof(int64) * 5; // 40 BYTES
 
-
+  int64 MEMORY_SIZE_BYTES = 1 *1073741824L; //2GB
 
 	int64 get_mapping_limit(int64 block_size_bytes){
 		return 1048576;//MAPPING_PERCENTAGE * block_size_bytes;
@@ -170,6 +172,18 @@ namespace mflash{
 	  return indexes;
 	}
 
+	int stick_this_thread_to_core(int core_id) {
+	   int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+	   if (core_id < 0 || core_id >= num_cores)
+	      return EINVAL;
+
+	   cpu_set_t cpuset;
+	   CPU_ZERO(&cpuset);
+	   CPU_SET(core_id, &cpuset);
+
+	   pthread_t current_thread = pthread_self();
+	   return pthread_setaffinity_np(current_thread, sizeof(cpu_set_t), &cpuset);
+	}
 }
 
 

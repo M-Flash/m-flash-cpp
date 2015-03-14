@@ -22,23 +22,24 @@
 #include "../log/easylogging++.h"
 
 using namespace std;
+/*
 
 namespace mflash{
 
 	class LanczosSO{
-			PrimitiveMatrix<double, EmptyType> *matrix;
+			PrimitiveMatrix<EmptyField> *matrix;
 			int iterations;
 			int k;
 
 			mat build_tridiagonal_matrix(int m, double alpha [], double beta[]);
 
 		public:
-			LanczosSO(PrimitiveMatrix<double, EmptyType> &matrix, int iterations, int k);
+			LanczosSO(PrimitiveMatrix<EmptyField> &matrix, int iterations, int k);
 			void create_ritz_vectors(PrimitiveVector<double> *vectors[], mat &q);
 			void run();
 	};
 
-	LanczosSO::LanczosSO(PrimitiveMatrix<double, EmptyType> &matrix, int iterations, int k){
+	LanczosSO::LanczosSO(PrimitiveMatrix<EmptyField> &matrix, int iterations, int k){
 		this->matrix = &matrix;
 		this->iterations = iterations;
 		this->k = k;
@@ -158,8 +159,8 @@ namespace mflash{
 		mat evalues = eigensolver.eigenvalues();
 		mat q = eigensolver.eigenvectors();
 
-		/*double *eigenValues  = new double[iterations];
-		mat2array(evalues, eigenValues);*/
+		double *eigenValues  = new double[iterations];
+		mat2array(evalues, eigenValues);
 
 		int64 *ids = sort_and_get_indexes(iterations, evalues.data(), false);
 		swap_cols(q, ids, k);
@@ -225,5 +226,6 @@ namespace mflash{
 		return matrix;
 	}
 }
+*/
 
 #endif /* ALGORITHM_LANCZOSSO_HPP_ */

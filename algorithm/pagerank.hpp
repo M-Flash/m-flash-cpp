@@ -17,7 +17,7 @@ namespace mflash{
 	#define RESISTANCE 0.85
 	#define N 1222
 
-	template <class V, class E = EmptyType>
+	template <class V, class E = EmptyField>
 	class PageRankOperator : public MAlgorithm<V, E>{
 		public:
 			void initialize(MatrixWorker<V, E> &worker, Element<V> &out_element){
