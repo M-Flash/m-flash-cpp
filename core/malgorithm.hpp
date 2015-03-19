@@ -18,8 +18,14 @@ namespace mflash{
 	class MAlgorithm{
 		public:
 
+      /**
+       * Called before start the processing of each edge to initialize the values to transfer using edges.
+       *
+       */
+      virtual void initialize_source(MatrixWorker<E> &worker, Element<VSource> &destination) {}
+
 	    /**
-	     * Called before start the processing of each column to initialize the values of the output or the accumulators.
+	     * Called before start the processing of each each to initialize the values of the output or the accumulators.
 	     */
 			virtual void initialize(MatrixWorker<E> &worker, Element<VDestination> &destination) = 0;
 
@@ -38,6 +44,16 @@ namespace mflash{
 			 * Called after combine the accumulators for each vertex to update the vertex value.
 			 */
 			virtual void apply(MatrixWorker<E> &worker, Element<VDestination> &out_element) = 0;
+
+
+			/**
+       *  Check is the initialized method is executed. By default is false and MFlash uses the current value stored.
+       *  When it is true, it is executed before iteration starts and after before_iteration method.
+       *
+       */
+      virtual bool is_source_initialized(){
+        return false;
+      }
 
 			/**
        *  Check is the initialized method is executed. By default is true.
@@ -66,6 +82,7 @@ namespace mflash{
       virtual void after_iteration(int iteration, MatrixWorker<E> &worker){
       }
 
+      virtual ~MAlgorithm(){}
 	};
 
 }
