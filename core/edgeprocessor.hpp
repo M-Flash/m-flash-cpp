@@ -54,13 +54,13 @@ namespace mflash{
 
           void ** ptr;
           for( i = 0 ; i < source_field_count; i++){
-              ptr = (void **)worker->value_pointers[i];
-              *ptr  = worker->array_pointers[i]->get_element(in_vertex_id);
+              ptr = (void**)worker->value_pointers[i];
+              *ptr = worker->array_pointers[i]->get_element(in_vertex_id);
           }
 
           for(; i < field_count; i++){
-             ptr = (void **)worker->value_pointers[i];
-             *ptr  = worker->array_pointers[i]->get_element(out_vertex_id);
+              ptr = (void**)worker->value_pointers[i];
+              *ptr = worker->array_pointers[i]->get_element(out_vertex_id);
           }
 
           algorithm->gather(*(worker), element_source, element_destination_accumulator, *edge);

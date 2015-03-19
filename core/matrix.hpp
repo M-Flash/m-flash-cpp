@@ -51,6 +51,9 @@ namespace mflash{
 
 		BlockType get_block_type(int block_count, int64 vertex_size_bytes, int64 edge_size_bytes);
 
+    template<class VSource, class VDestination>
+    inline void operate(MAlgorithm<VSource,VDestination, E> &algorithm, Vector<VSource> *inVector, Vector<VDestination> *outVector);
+
 		public:
 			Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode);
 			//Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode);
@@ -125,26 +128,33 @@ namespace mflash{
   }
 	//first implementation without replicates :)
 
+
+  template<class E>
+    template<class VSource, class VDestination>
+    inline void Matrix<E>::operate(MAlgorithm<VSource,VDestination, E> &algorithm, Vector<VSource> *inVector, Vector<VDestination> *outVector){
+
+      worker->set_default_destination_field(0);
+      worker->set_default_source_field(0);
+
+      worker->set_default_source_field(inVector);
+      worker->set_default_destination_field(outVector);
+
+      worker->operate<VSource, VDestination>(algorithm);
+
+      worker->set_default_destination_field(0);
+      worker->set_default_source_field(0);
+    }
+
 	template<class E>
 	template<class VSource, class VDestination>
 	inline void Matrix<E>::operate(MAlgorithm<VSource,VDestination, E> &algorithm, Vector<VSource> &inVector, Vector<VDestination> &outVector){
-
-	  worker->set_default_destination_field(0);
-	  worker->set_default_source_field(0);
-
-	  worker->set_default_source_field(&inVector);
-	  worker->set_default_destination_field(&outVector);
-
-	  worker->operate<VSource, VDestination>(algorithm);
-
-	  worker->set_default_destination_field(0);
-	  worker->set_default_source_field(0);
+	  operate<VSource, VDestination>(algorithm, &inVector, &outVector);
 	}
 
 	template<class E>
   template<class VDestination>
   inline void Matrix<E>::operate(MAlgorithm<EmptyField,VDestination, E> &algorithm, Vector<VDestination> &outVector){
-	  operate<EmptyField, VDestination>(algorithm, 0, outVector);
+	  operate<EmptyField, VDestination>(algorithm, 0, &outVector);
   }
 
 	template<class E>

@@ -92,7 +92,7 @@ namespace mflash{
 			bool add_field(FieldType type, string fieldname, AbstractVector &vector);
 
 			bool remove_field(FieldType type, string fieldname);
-			void* get_field_pointer(FieldType type, string fieldname);
+			void set_field_pointer(FieldType type, string fieldname, void **pointer);
 
 			int64 block_size();
 
@@ -170,7 +170,7 @@ namespace mflash{
   }
 
   template <class E>
-  inline void* MatrixWorker<E>::get_field_pointer(FieldType type, string fieldname){
+  inline void MatrixWorker<E>::set_field_pointer(FieldType type, string fieldname, void **pointer){
      VectorPointer *vpointer;
 
      if(FieldType::SOURCE == type){
@@ -178,8 +178,7 @@ namespace mflash{
      }else{
        vpointer = destination_map[fieldname];
      }
-
-     return vpointer->pointer;
+     *(vpointer->pointer) = pointer;
    }
 
 
@@ -234,14 +233,14 @@ namespace mflash{
 
     for(iter = source_map.begin(); iter != source_map.end(); iter++, pos++){
         vpointer = iter->second;
-        value_pointers[pos] = vpointer->pointer;
+        value_pointers[pos] = *(vpointer->pointer);
         array_pointers[pos] = new GenericArray(vpointer->vector->element_size(), block_size);
         vector_pointers[pos] = vpointer->vector;
     }
 
     for(iter = destination_map.begin(); iter != destination_map.end(); iter++, pos++){
         vpointer = iter->second;
-        value_pointers[pos] = vpointer->pointer;
+        value_pointers[pos] = *(vpointer->pointer);
         array_pointers[pos] = new GenericArray(vpointer->vector->element_size(), block_size);
         vector_pointers[pos] = vpointer->vector;
     }
@@ -322,7 +321,8 @@ namespace mflash{
   template<class VSource, class VDestination>
   void MatrixWorker<E>::operate(MAlgorithm<VSource,VDestination, E> &algorithm){
     const int64 elements = matrix->size();
-    const int64 block_size = this->block_size();
+    int64 block_size = this->block_size();
+    block_size = block_size==0? matrix->get_elements_by_block(): block_size;
     const int64 blocks = matrix->size() / block_size  + (matrix->size() % block_size== 0?0:1);
     string stream_file = get_stream_file(matrix->get_file());
 
@@ -347,6 +347,10 @@ namespace mflash{
     int64 source_limit = 0;
     int64 destination_limit = 0;
 
+
+    LOG (INFO) << "- MATRIX OPERATION STARTED";
+    algorithm.before_iteration(0, *this);
+
     initialize_fields<VSource, VDestination>();
 
     Array<VDestination> *destination_wrapped = dynamic_cast< Array<VDestination>* >(destination_pointer);
@@ -356,8 +360,6 @@ namespace mflash{
 
     BlockProperties **block_properties;
 
-    LOG (INFO) << "- MATRIX OPERATION STARTED";
-    algorithm.before_iteration(0, *this);
     LOG (INFO) << "- EDGE PREPROCESSING STARTED";
     block_properties = block_preprocessing(blocks);
     LOG (INFO) << "- EDGE PREPROCESSING FINISHED";
@@ -492,7 +494,9 @@ namespace mflash{
   template<class E>
   BlockProperties** MatrixWorker<E>::block_preprocessing(int block_count){
     //const int64 elements = matrix->size();
-    const int64 block_size = this->block_size();
+    int64 block_size = this->block_size();
+    block_size = block_size==0? matrix->get_elements_by_block(): block_size;
+
     //const int64 blocks = matrix->size() / block_size  + (matrix->size() % block_size== 0?0:1);
     string stream_file = get_stream_file(matrix->get_file());
 
