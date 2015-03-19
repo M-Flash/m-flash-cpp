@@ -50,8 +50,9 @@ namespace mflash{
       bool reverse;
     public:
 
-      MappedStream(string file, int64 offset, int64 size);
-      MappedStream(string file): MappedStream(file, 0,0){};
+      MappedStream(string file, int64 offset, int64 size, bool reverse);
+      MappedStream(string file): MappedStream(file, 0,0, false){};
+      MappedStream(string file, int64 offset, int64 size): MappedStream(file, offset, size, false){};
 
       int64 position();
       void set_position(int64 position);
@@ -78,9 +79,10 @@ namespace mflash{
   };
 
 
-  inline MappedStream::MappedStream(string file, int64 offset, int64 size){
+  inline MappedStream::MappedStream(string file, int64 offset, int64 size, bool reverse){
     this->file = file;
     this->offset = offset;
+    this->reverse = reverse;
 
     if(size <=0){
       size = file_size(file);
