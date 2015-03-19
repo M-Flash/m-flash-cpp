@@ -263,7 +263,8 @@ namespace mflash{
 
 	template <class V>
 	V Array<V>::operate(Operator<V> &operator_, Array<V> &left,  Array<V> &right,  Array<V> &out){
-			UnaryReducer<V> * unary_reducer_ptr = dynamic_cast<UnaryReducer<V> *> (&operator_) ;
+      V value;
+	    UnaryReducer<V> * unary_reducer_ptr = dynamic_cast<UnaryReducer<V> *> (&operator_) ;
 			BinaryReducer<V> * binary_reducer_ptr = dynamic_cast<BinaryReducer<V> *> (&operator_);
 			ZeroOperator<V> * zero_ptr = dynamic_cast<ZeroOperator<V> *> (&operator_);
 			UnaryOperator<V> * unary_ptr = dynamic_cast<UnaryOperator<V> *> (&operator_);
@@ -289,29 +290,32 @@ namespace mflash{
 					return Array<V>::operate(*binary_ptr, left, right, out);
 			}
 
-			return 0;
+			return value;
 		}
 
 
 	template <class V>
 	V Array<V>::operate(ZeroOperator<V> &operator_, Array<V> &left){
+    V value;
 		ZeroThreadDataType<V> t (0, operator_, left, left, left);
 		t.call();
-		return 0;
+		return value;
 	}
 
 	template <class V>
 	V Array<V>::operate(UnaryOperator<V> &operator_, Array<V> &left, Array<V> &out ){
+    V value;
 		UnaryThreadDataType<V> t (0, operator_, left, left, out);
 		t.call();
-		return 0;
+		return value;
 	}
 
 	template <class V>
 	V Array<V>::operate(BinaryOperator<V> &operator_, Array<V> &left, Array<V> &right, Array<V> &out ){
+    V value;
 		BinaryThreadDataType<V> t (0, operator_, left, right, out);
 		t.call();
-		return 0;
+		return value;
 	}
 
 	template <class V>
@@ -365,6 +369,7 @@ namespace mflash{
 
 	template <class V> inline
 	V ZeroThreadDataType<V>::call(){
+    V value;
 		ZeroOperator<V>* operator_ = (ZeroOperator<V>*) (this->operator_);
 		Element<V> element;
 
@@ -375,14 +380,14 @@ namespace mflash{
 				this->left_offset += this->step;
 		}
 
-		return 0;
+		return value;
 
 	}
 
 	template <class V> inline
 	V UnaryThreadDataType<V>::call(){
 		UnaryOperator<V>* operator_ = (UnaryOperator<V>*) (this->operator_);
-
+    V value;
 		Element<V> element;
 		Element<V> out;
 
@@ -401,13 +406,14 @@ namespace mflash{
 
 		//for(int64 i=this->init; i<this->size; i+=this->step, left_offset+=this->step, out_offset+=this->step){
 
-		return 0;
+		return value;
 	}
 
 	template <class V> inline
 	V BinaryThreadDataType<V>::call(){
 		BinaryOperator<V>* operator_ = (BinaryOperator<V>*) (this->operator_);
 
+		V value;
 		Element<V> element1;
 		Element<V> element2;
 		Element<V> out;
@@ -428,7 +434,7 @@ namespace mflash{
 				this->right_offset += this->step;
 				this->out_offset += this->step;
 		}
-		return 0;
+		return value;
 	}
 
 	template <class V> inline
