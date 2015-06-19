@@ -10,9 +10,9 @@
 
 #include <string>
 
-#include "mapped_stream.hpp"
-#include "type.hpp"
-#include "edgeprocessor.hpp"
+#include "../core2/edgeprocessor.hpp"
+#include "../core2/mapped_stream.hpp"
+#include "../core2/type.hpp"
 
 namespace mflash{
 

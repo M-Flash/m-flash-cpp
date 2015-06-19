@@ -16,8 +16,8 @@
 #include <string>
 #include <sys/mman.h>
 
-#include "type.hpp"
-#include "util.hpp"
+#include "../core2/type.hpp"
+#include "../core2/util.hpp"
 
 
 using namespace std;

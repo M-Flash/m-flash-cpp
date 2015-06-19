@@ -12,9 +12,9 @@
 #include <ctime>
 #include <string>
 
-#include "../core/operator.hpp"
-#include "../core/type.hpp"
-#include "../core/vector.hpp"
+#include "../core2/operator.hpp"
+#include "../core2/type.hpp"
+#include "../core2/vector.hpp"
 
 using namespace std;
 

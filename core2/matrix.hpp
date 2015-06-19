@@ -12,14 +12,14 @@
 #include <iostream>
 #include <string>
 
-#include "../core/array.hpp"
-#include "../core/operator.hpp"
-#include "../core/type.hpp"
-#include "../core/util.hpp"
-#include "../core/vector.hpp"
+#include "../core2/array.hpp"
 #include "../core2/blockiterator.hpp"
 #include "../core2/direct_stream.hpp"
 #include "../core2/mmappointer.hpp"
+#include "../core2/operator.hpp"
+#include "../core2/type.hpp"
+#include "../core2/util.hpp"
+#include "../core2/vector.hpp"
 #include "../log/easylogging++.h"
 
 namespace mflash{

@@ -5,8 +5,8 @@
  *      Author: hugo
  */
 
-#ifndef CORE_EDGEPROCESSOR_HPP_
-#define CORE_EDGEPROCESSOR_HPP_
+#ifndef CORE2_EDGEPROCESSOR_HPP_
+#define CORE2_EDGEPROCESSOR_HPP_
 
 
 namespace mflash{
@@ -77,4 +77,4 @@ namespace mflash{
 }
 
 
-#endif /* CORE_EDGEPROCESSOR_HPP_ */
+#endif /* CORE2_EDGEPROCESSOR_HPP_ */

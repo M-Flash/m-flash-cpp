@@ -6,8 +6,8 @@
  */
 
 
-#include "../core/malgorithm.hpp"
 #include "../core/type.hpp"
+#include "../core2/malgorithm.hpp"
 
 //using namespace mflash;
 

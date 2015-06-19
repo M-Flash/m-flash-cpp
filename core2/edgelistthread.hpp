@@ -8,7 +8,7 @@
 #ifndef MFLASH_CPP_CORE_EDGELISTTHREAD_HPP_
 #define MFLASH_CPP_CORE_EDGELISTTHREAD_HPP_
 
-#include "streamprocessor.hpp"
+#include "../core2/streamprocessor.hpp"
 
 namespace mflash{
 

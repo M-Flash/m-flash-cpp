@@ -18,8 +18,8 @@
 #include <string>
 #include <boost/interprocess/mapped_region.hpp>
 
-#include "../core/type.hpp"
-#include "../core/util.hpp"
+#include "../core2/type.hpp"
+#include "../core2/util.hpp"
 
 
 using namespace std;
@@ -36,7 +36,7 @@ namespace mflash{
       const static int64 FLOAT_SIZE = (int64)sizeof(float);
       const static int64 DOUBLE_SIZE = (int64)sizeof(double);
       int64 PAGE_SIZE = boost::interprocess::mapped_region::get_page_size();
-  public:
+
       string file;
       int64 offset;
       int64 size;
@@ -48,17 +48,30 @@ namespace mflash{
       int file_id;
 
       bool reverse;
+    public:
 
-      MappedStream(string file, int64 offset, int64 size);
-      MappedStream(string file): MappedStream(file, 0,0){};
+      MappedStream(string file, int64 offset, int64 size, bool reverse);
+      MappedStream(string file): MappedStream(file, 0,0, false){};
+      MappedStream(string file, int64 offset, int64 size): MappedStream(file, offset, size, false){};
 
       int64 position();
       void set_position(int64 position);
+
+      void* current_pointer(){
+        return current_ptr;
+      }
 
       char next();
       int next_int();
       int next_int(int64 step);
       char* next(int64 bytes, int64 step = 0);
+
+  //		int64 next_int64();
+  /*
+      float next_float();
+      double next_double();*/
+
+
 
       bool has_remain();
 
@@ -66,10 +79,10 @@ namespace mflash{
   };
 
 
-  inline MappedStream::MappedStream(string file, int64 offset, int64 size){
+  inline MappedStream::MappedStream(string file, int64 offset, int64 size, bool reverse){
     this->file = file;
     this->offset = offset;
-    //this->opposite_direction = opposite_direction;
+    this->reverse = reverse;
 
     if(size <=0){
       size = file_size(file);
@@ -95,13 +108,8 @@ namespace mflash{
     ptr = (char*) mmap(0, size , PROT_READ, MAP_SHARED, file_id, offset);
 
     //MOVING POINTER TO THE FIRST POSITION OF THE OFFSET
-    //if(!opposite_direction){
-      current_ptr = ptr + bytes_align;
-      last_ptr = ptr + size;
-    /*}else{
-      last_ptr  = ptr + bytes_align;
-      current_ptr = ptr + size;
-    }*/
+    current_ptr = ptr + bytes_align;
+    last_ptr = ptr + size;
 
     if (ptr == MAP_FAILED) {
       close(file_id);
@@ -112,18 +120,12 @@ namespace mflash{
   }
 
   inline bool MappedStream::has_remain(){
-    return /*opposite_direction? current_ptr > last_ptr : */current_ptr < last_ptr;
+    return current_ptr != last_ptr;
   }
 
   inline char* MappedStream::next(int64 bytes, int64 step){
-    char* ptr;
-    //if(!opposite_direction){
-      ptr = current_ptr;
-      current_ptr += bytes + step;
-    /*}else{
-      ptr = current_ptr - bytes;
-      current_ptr -= (bytes + step);
-    }*/
+    char* ptr = current_ptr;
+    current_ptr += bytes + step;
     return ptr;
   }
   inline int MappedStream::next_int(){
@@ -132,11 +134,11 @@ namespace mflash{
 
   inline int MappedStream::next_int(int64 step){
     int v = *( (int*) next(INT_SIZE, step) );
-    /*if(reverse)
+    if(reverse)
       return ((v >> 24)  & 0xFF)
             +(((v >> 16) & 0xFF) << 8)
             +(((v >>  8) & 0xFF) << 16)
-            + ((v        & 0xFF) << 24);*/
+            + ((v        & 0xFF) << 24);
     return v;
   }
   /*
@@ -159,7 +161,7 @@ namespace mflash{
   inline void MappedStream::set_position(int64 position){
     char* p = position + ptr;
     if(p> ptr && p< last_ptr){
-        current_ptr = p;
+        this->current_ptr = p;
     }
   }
 
@@ -167,7 +169,7 @@ namespace mflash{
     if (munmap(ptr, size) == -1) {
       perror("Error un-mmapping the file");
     }
-    close(file_id);
+    close(this->file_id);
   }
 
 }

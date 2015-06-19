@@ -10,11 +10,9 @@
 #include <ctime>
 #include <iostream>
 
-#include "../core/primitivevector.hpp"
-#include "../core/malgorithm.hpp"
-#include "../core/primitivematrix.hpp"
-
-//#include "../algorithm/lanczosSO.hpp"
+#include "../core2/malgorithm.hpp"
+#include "../core2/primitivematrix.hpp"
+#include "../core2/primitivevector.hpp"
 #include "../log/easylogging++.h"
 
 INITIALIZE_EASYLOGGINGPP

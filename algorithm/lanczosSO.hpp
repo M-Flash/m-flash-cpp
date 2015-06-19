@@ -12,12 +12,12 @@
 #include <sstream>
 #include <string>
 
-#include "../core/eigenwrapper.hpp"
-#include "../core/matrix.hpp"
-#include "../core/primitivematrix.hpp"
 #include "../core/primitivevector.hpp"
 #include "../core/type.hpp"
 #include "../core/util.hpp"
+#include "../core2/eigenwrapper.hpp"
+#include "../core2/matrix.hpp"
+#include "../core2/primitivematrix.hpp"
 #include "../Eigen/Dense"
 #include "../log/easylogging++.h"
 

@@ -10,71 +10,54 @@
 
 typedef long long int64;
 
-namespace mflash{
+namespace mflash {
 
-/*  template <class V>
-	class AbstractElement{
-    public:
-      int64 id;
-      V* value;
+template<class V>
+class Element {
+public:
+	int64 id;
+	V* value;
 
-      void set_value(V value){
-        *(this->value) = value;
-      }
+	void set_value(V value) {
+		*(this->value) = value;
+	}
+};
 
-      V& get_value(){
-        return value;
-      }
-  };*/
+class EmptyField {
+};
 
-  template <class V>
-	class Element{
-		public:
-			int64 id;
-			V* value;
+enum ElementIdSize {
+	SIMPLE, DOUBLE,
+//ATOMIC
+};
 
-			void set_value(V value){
-				*(this->value) = value;
-			}
-	};
+enum Mode {
+	UNSAFE, VECTOR_REPLICATION,
+//ATOMIC
+};
 
-	class EmptyField{};
+enum GraphFormatterMode {
+	ADJACENCY_LIST, EDGE_LIST
+};
 
+enum FieldType {
+	SOURCE, DESTINATION
+};
 
-	enum ElementIdSize{
-		SIMPLE,
-		DOUBLE,
-		//ATOMIC
-	};
+enum BlockType {
+	M_FLASH, X_STREAM
+};
 
-	enum Mode{
-		UNSAFE,
-		VECTOR_REPLICATION,
-		//ATOMIC
-	};
+struct BlockProperties {
+	BlockType type;
+	int64 offset;
+	int64 size;
 
-  enum FieldType{
-    SOURCE,
-    DESTINATION
-  };
-
-
-	enum BlockType{
-	  M_FLASH,
-	  X_STREAM
-	};
-
-  struct BlockProperties{
-    BlockType type;
-    int64 offset;
-    int64 size;
-
-
-    BlockProperties(BlockType type, int64 offset, int64 size){
-      this->type = type;
-      this->offset = offset;
-      this->size = size;
-    }
-  };
+	BlockProperties(BlockType type, int64 offset, int64 size) {
+		this->type = type;
+		this->offset = offset;
+		this->size = size;
+	}
+};
 }
 #endif /* MFLASH_CPP_CORE_TYPE_HPP_ */

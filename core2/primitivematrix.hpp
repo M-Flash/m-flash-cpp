@@ -5,11 +5,11 @@
  *      Author: hugo
  */
 
-#ifndef CORE_PRIMITIVEMATRIX_HPP_
-#define CORE_PRIMITIVEMATRIX_HPP_
+#ifndef CORE2_PRIMITIVEMATRIX_HPP_
+#define CORE2_PRIMITIVEMATRIX_HPP_
 
-#include "matrix.hpp"
-#include "primitivevector.hpp"
+#include "../core2/matrix.hpp"
+#include "../core2/primitivevector.hpp"
 
 
 namespace mflash{
@@ -64,4 +64,4 @@ namespace mflash{
 }
 
 
-#endif /* CORE_PRIMITIVEMATRIX_HPP_ */
+#endif /* CORE2_PRIMITIVEMATRIX_HPP_ */

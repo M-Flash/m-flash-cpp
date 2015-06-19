@@ -10,13 +10,13 @@
 
 #include <string>
 
-#include "array.hpp"
-#include "direct_stream.hpp"
-#include "edgelistthread.hpp"
-#include "matrix.hpp"
-#include "matrixworker.hpp"
-#include "streamprocessor.hpp"
-#include "type.hpp"
+#include "../core2/array.hpp"
+#include "../core2/direct_stream.hpp"
+#include "../core2/edgelistthread.hpp"
+#include "../core2/matrix.hpp"
+#include "../core2/matrixworker.hpp"
+#include "../core2/streamprocessor.hpp"
+#include "../core2/type.hpp"
 /*
 namespace mflash{
 

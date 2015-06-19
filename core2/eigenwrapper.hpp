@@ -5,8 +5,8 @@
  *      Author: hugo
  */
 
-#ifndef CORE_EIGENWRAPPER_HPP_
-#define CORE_EIGENWRAPPER_HPP_
+#ifndef CORE2_EIGENWRAPPER_HPP_
+#define CORE2_EIGENWRAPPER_HPP_
 
 #include "../Eigen/Dense"
 
@@ -41,4 +41,4 @@ inline void swap_cols(mat *m , int64 *col_ids, int n_cols=0){
   swap_cols(*m, col_ids, n_cols);
 }
 
-#endif /* CORE_EIGENWRAPPER_HPP_ */
+#endif /* CORE2_EIGENWRAPPER_HPP_ */

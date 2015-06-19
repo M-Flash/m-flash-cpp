@@ -12,8 +12,8 @@
 #include <fstream>
 #include <string>
 
-#include "type.hpp"
-#include "util.hpp"
+#include "../core2/type.hpp"
+#include "../core2/util.hpp"
 
 using namespace std;
 

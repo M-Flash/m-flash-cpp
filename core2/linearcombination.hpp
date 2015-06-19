@@ -8,9 +8,9 @@
 #ifndef MFLASH_CPP_CORE_LINEARCOMBINATION_HPP_
 #define MFLASH_CPP_CORE_LINEARCOMBINATION_HPP_
 
-#include "operator.hpp"
-#include "type.hpp"
-#include "vector.hpp"
+#include "../core2/operator.hpp"
+#include "../core2/type.hpp"
+#include "../core2/vector.hpp"
 
 namespace mflash{
 
