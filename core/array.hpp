@@ -255,9 +255,10 @@ inline char* GenericArray::get_element(int64 pos) {
 }
 
 inline void GenericArray::set_element(int64 pos, char* value) {
-	*(offset_address
+	/**(offset_address
 			+ (element_shifted ? pos << element_shift : pos * element_size_)) =
-			*value;
+			*value;*/
+	memcpy(offset_address+ (element_shifted ? pos << element_shift : pos * element_size_), value, element_size_);
 }
 
 /*
@@ -271,6 +272,7 @@ inline V* Array<V>::get_element(int64 pos) {
 
 template<class V>
 inline void Array<V>::set_element(int64 pos, V* value) {
+	//memcpy(offset_address_wrapped + pos, value, element_size_);
 	*(offset_address_wrapped + pos) = *value;
 }
 
