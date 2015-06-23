@@ -66,6 +66,12 @@ string get_block_file(string graph, int64 i, int64 j) {
 	return file.str();
 }
 
+string get_partition_file(string graph, int64 partition_id) {
+	std::stringstream file;
+	file << get_mflash_directory(graph) << FILE_SEPARATOR << partition_id << ".partition";
+	return file.str();
+}
+
 bool exist_file(string file) {
 	ifstream f(file.c_str());
 	if (f.good()) {
