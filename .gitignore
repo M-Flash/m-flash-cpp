@@ -4,5 +4,11 @@
 /.recommenders
 /RemoteSystemsTempFiles
 Debug/
-*/Debut/*
+*/Debug/*
 */Debug/**
+bin/
+*/bin/*
+*/bin/**
+logs/
+*/logs/*
+*/logs/**
