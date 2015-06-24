@@ -1,18 +1,23 @@
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
-#include "core/array.hpp"
-#include "core/type.hpp"
+#include "../../log/easylogging++.h"
+#include "array.hpp"
+#include "type.hpp"
+#include "util.hpp"
 
+
+#ifndef CORE_SPLITTERBUFFER_HPP_
+#define CORE_SPLITTERBUFFER_HPP_
 
 
 namespace mflash{
 
-template <class ID_TYPE>
+template <class IdType>
 class SplitterBuffer{
 	/**
 	 * Buffer size in elements
@@ -23,6 +28,8 @@ class SplitterBuffer{
 	 * Edge size in bytes without include the size of the in-id and out-id.
 	 */
 	int64 edge_data_size;
+
+	bool is_edge_data;
 
 	/**
 	 * Edge size in bytes.
@@ -50,9 +57,9 @@ class SplitterBuffer{
 
 	bool in_split;
 
-	std::vector<int64> *file_offsets;
+	std::vector<int64> file_offsets;
 
-	std::vector<int64> *partition_counters;
+	std::vector<int64> partition_counters;
 
 	int64 partitions;
 
@@ -65,118 +72,128 @@ class SplitterBuffer{
 
 	void split();
 
-	ID_TYPE getPartitionId(ID_TYPE in_id, ID_TYPE out_id);
+	IdType getPartitionId(IdType in_id, IdType out_id);
 
 	public:
 
 	SplitterBuffer(std::string graph, int64 edge_data_size, int64 buffer_size, int64 ids_by_partitions, int64 partitions = 0, bool in_split = false);
 
-	void add(ID_TYPE in_id, ID_TYPE out_id, char* edge_data);
-
+	void add(IdType in_id, IdType out_id, char* edge_data);
 
 
 	void flush();
 
 };
 
-template <class ID_TYPE> inline
-SplitterBuffer<ID_TYPE>::SplitterBuffer(std::string graph, int64 edge_data_size, int64 ids_by_partitions, int64 buffer_size, int64 partitions, bool in_split){
+template <class IdType> inline
+SplitterBuffer<IdType>::SplitterBuffer(std::string graph, int64 edge_data_size, int64 ids_by_partitions, int64 buffer_size, int64 partitions, bool in_split){
 	this->graph = graph;
 	this->edge_data_size = edge_data_size;
-	this->edge_size = 2 * sizeof(ID_TYPE) + edge_data_size;
+	this->edge_size =  2 * sizeof(IdType) + edge_data_size;
+	this->is_edge_data = edge_data_size != 0;
 	this->buffer_size = buffer_size;
 	this->ids_by_partition = ids_by_partitions;
 	this->partitions = partitions;
 	this->in_split = in_split;
-	this-> elements_buffer = buffer_size/ (2 * edge_size);
-	this->id_size = sizeof(ID_TYPE);
+	this-> elements_buffer = buffer_size/ edge_size;
+	this->id_size = sizeof(IdType);
 
 	main_buffer = new GenericArray (edge_size, elements_buffer);
 	splitter_buffer = new GenericArray (edge_size, elements_buffer);
 
-	this->file_offsets = new std::vector<int64>(partitions);
-	this->partition_counters = new std::vector<int64>(partitions);
+	this->file_offsets.resize(partitions);// = new std::vector<int64>(partitions);
+	this->partition_counters.resize(partitions);// = new std::vector<int64>(partitions);
 
 	//memset(this->file_offsets, 0, sizeof(int64) * partitions);
 
 	current_position = 0;
 
 }
-template <class ID_TYPE> inline
-ID_TYPE SplitterBuffer<ID_TYPE>::getPartitionId(ID_TYPE in_id, ID_TYPE out_id){
+template <class IdType> inline
+IdType SplitterBuffer<IdType>::getPartitionId(IdType in_id, IdType out_id){
 	return (in_split? in_id: out_id)/ids_by_partition;
 }
 
-template <class ID_TYPE> inline
-void SplitterBuffer<ID_TYPE>::add(ID_TYPE in_id, ID_TYPE out_id, char* edge_data){
+template <class IdType> inline
+void SplitterBuffer<IdType>::add(IdType in_id, IdType out_id, char* edge_data){
 	if(current_position >= elements_buffer ){
 		split();
 	}
 
-	ID_TYPE partition_id = getPartitionId(in_id, out_id);
+	IdType partition_id = getPartitionId(in_id, out_id);
 	char * element_ptr = splitter_buffer->get_element(current_position++);
-	memcpy(element_ptr, *in_id, id_size);
-	memcpy(element_ptr + id_size, *out_id, id_size);
-	memcpy(element_ptr + (id_size<<2), edge_data, edge_data_size);
-
-
-	//checking partition by source
-	if ( partition_id < partition_counters->size()){
-		partition_counters->resize(partition_id  + 1);
-
+	memcpy(element_ptr, &in_id, id_size);
+	memcpy(element_ptr + id_size, &out_id, id_size);
+	if(is_edge_data ){
+		memcpy(element_ptr + (id_size<<2), edge_data, edge_data_size);
 	}
+	//checking partition by source
+	if ( partition_id >= partition_counters.size()){
+		partition_counters.resize(partition_id  + 1);
+	}
+
 	partition_counters[partition_id] ++;
 }
 
 
 
-template <class ID_TYPE>
-void SplitterBuffer<ID_TYPE>::split(){
+template <class IdType>
+void SplitterBuffer<IdType>::split(){
 
 	//splitting value
+	char *base_ptr = splitter_buffer->address();
 	char *ptr = splitter_buffer->address();
-	char *last_ptr = ptr + current_position * current_position;
+	char *last_ptr = ptr + current_position * edge_size;
 
 	char tmp_edge[edge_size];
 
-	int partitions = partition_counters->size();
-	int64 split_positions[partitions];
-	split_positions[0] = 0;
+	int partitions = partition_counters.size();
+	char* split_positions[partitions];
+	split_positions[0] = base_ptr;
 
 	for(int i = 1 ; i < partitions; i++){
-		split_positions[i] = split_positions[i-1] + partition_counters[i];
+		split_positions[i] = split_positions[i-1] + edge_size * partition_counters[i-1];
 	}
 
-	ID_TYPE partition_id;
+	IdType partition_id;
 
-	int64 current_partition = 0;
+	char * partition_ptr;
 	while(ptr < last_ptr){
-		partition_id = getPartitionId(*((ID_TYPE*)ptr), *((ID_TYPE*)(ptr + id_size)));
-		if(partition_id != current_partition){
+		partition_id = getPartitionId(*((IdType*)ptr), *((IdType*)(ptr + id_size)));
+		partition_ptr = split_positions[partition_id];
+		if(ptr != partition_ptr){
 			memcpy(tmp_edge, ptr, edge_size);
-			memcpy(ptr, split_positions[partition_id] ,edge_size);
-			memcpy(split_positions[partition_id], tmp_edge ,edge_size);
+			memcpy(ptr, partition_ptr ,edge_size);
+			memcpy(partition_ptr, tmp_edge ,edge_size);
+
 		}else{
 			ptr += edge_size;
 		}
+		split_positions[partition_id]+= edge_size;
 	}
 
-	file_offsets->resize(partitions);
+	file_offsets.resize(partitions);
 
-	int64 offset = 0;
+	char* offset = base_ptr;
 	//writing partitions to disk
 	for(int i = 0 ; i < partitions; i++){
 		if(partition_counters[i] == 0){
 			continue;
 		}
+		int64 partition_size = sizeof(char) * partition_counters[i] * edge_size;
 
 		FILE * pFile;
-		pFile = fopen ("myfile.bin", file_offsets[i] == 0? "wb": "ab");
-		fwrite (main_buffer + (offset * edge_size), sizeof(char), sizeof(char) * current_position * edge_size, pFile);
+		std::string file = get_partition_file(graph, i);
+		pFile = fopen (file.c_str(), file_offsets[i] == 0? "wb": "ab");
+		LOG(DEBUG) << "Storing edges in partition "<< i << " : "<< file;
+		fseek(pFile, file_offsets[i], SEEK_SET);
+		fwrite (offset,sizeof(char), partition_size, pFile);
 		fclose (pFile);
 
-		offset += partition_counters[i];
-		file_offsets[i] += partition_counters[i];
+		offset += partition_size;
+
+		file_offsets[i] += partition_size;
+		//resetting counter for the next split
 		partition_counters[i] = 0;
 	}
 	current_position = 0;
@@ -184,4 +201,12 @@ void SplitterBuffer<ID_TYPE>::split(){
 }
 
 
+template <class IdType>
+void SplitterBuffer<IdType>::flush(){
+	split();
 }
+
+
+
+}
+#endif

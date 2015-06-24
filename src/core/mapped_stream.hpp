@@ -31,6 +31,7 @@ namespace mflash{
    * The first implementation suppose that we can map whole file.
    */
   class MappedStream{
+	  const static int64 CHAR_SIZE = (int64)sizeof(char);
       const static int64 INT_SIZE = (int64)sizeof(int);
       const static int64 INT64_SIZE = (int64)sizeof(int64);
       const static int64 FLOAT_SIZE = (int64)sizeof(float);
@@ -129,6 +130,11 @@ namespace mflash{
   inline int MappedStream::next_int(){
     return next_int(0);
   }
+
+  inline char MappedStream::next(){
+    return  *( (char*) next(CHAR_SIZE, 0) );
+  }
+
 
   inline int MappedStream::next_int(int64 step){
     int v = *( (int*) next(INT_SIZE, step) );
