@@ -11,6 +11,7 @@
 #include "../core/operator.hpp"
 #include "../core/type.hpp"
 #include "../core/util.hpp"
+#include <cmath>
 
 /**
  * The implementation suppose that the architecture is 64bits then we don't need an set of buffer to map all the region on memory.
