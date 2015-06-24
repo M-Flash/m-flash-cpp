@@ -13,8 +13,11 @@
 #include <sstream>
 #include <string>
 #include <unistd.h>
+#include <assert.h>
+#include <boost/filesystem.hpp>
 
 #include "../core/type.hpp"
+#include "../../log/easylogging++.h"
 
 using namespace std;
 
@@ -25,7 +28,7 @@ const int MFLASH_VECTOR_THREADS = 1;
 const double MAPPING_PERCENTAGE = 0.1;
 
 const string FILE_SEPARATOR = "/";
-const string DIRECTORY = ".G-FLASH";
+const string DIRECTORY = ".M-FLASH";
 const string GRAPH = "graph";
 const string STREAM_FILE = "edge_stream";
 
@@ -46,11 +49,11 @@ string get_parent_directory(string graph) {
 string get_mflash_directory(string graph) {
 	string path = get_parent_directory(graph) + DIRECTORY;
 
-	/*	boost::filesystem::path dir(path);
+		boost::filesystem::path dir(path);
 
 	 if( !boost::filesystem::exists(path) ){
 	 boost::filesystem::create_directories(path);
-	 }*/
+	 }
 	return path;
 }
 
@@ -105,6 +108,26 @@ ios::openmode get_file_properties(string file, bool write) {
 	}
 
 	return properties;
+}
+
+template <class ID_TYPE, class EdgeType>
+int64 getEdgeSize(){
+	int64 size = 0;
+	#if Edgetype != EmptyField
+		size += sizeof(EdgeType)
+	#endif
+	return size +  (sizeof(ID_TYPE)<<2);
+
+}
+
+template <class EdgeType>
+int64 getEdgeDataSize(){
+	int64 size = 0;
+	#if Edgetype != EmptyField
+		size += sizeof(EdgeType)
+	#endif
+	return size;
+
 }
 /*string get_mflash_directory(string graph) {
  string path = get_parent_directory(graph);
