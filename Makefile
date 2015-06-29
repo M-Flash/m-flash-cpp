@@ -10,7 +10,7 @@ INCLUDES = $(MFLASH_DIR) $(BOOST_DIR)
 
 CPP = g++
 CPPFLAGS = -O3 $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
-CPPFLAGS-DEBUG = -g $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
+CPPFLAGS-DEBUG = -O0 -g $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
 LINKERFLAGS = -lz $(BOOST_LIBRARIES) 
 DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find . -name '*.hpp')
@@ -34,7 +34,7 @@ selected_test/%:
 	@mkdir -p bin/
 	$(CPP) $(CPPFLAGS) -I. test/${SELECTED_FILE}.cpp -o bin/${SELECTED_FILE} $(LINKERFLAGS)
 	
-selected_test_debug/%:
+selected_test_debug/%: 
 	@mkdir -p bin/
 	$(CPP) $(CPPFLAGS-DEBUG) -I. test/${SELECTED_FILE}.cpp -o bin/${SELECTED_FILE} $(LINKERFLAGS)
 
