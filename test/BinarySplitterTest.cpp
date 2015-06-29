@@ -17,11 +17,14 @@ int main(){
 	int from, to;
 	EmptyField field;
 	stream.set_position(0 );
+	int64 sum = 0;
 	while(stream.has_remain()){
 		from = stream.next_int();
 		to = stream.next_int();
+		//sum += from + to;
 		splitter.add(from, to, &field);
 	}
+	std::cout<<sum<<std::endl;
 
 	splitter.flush();
 }

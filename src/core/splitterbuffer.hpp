@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "../../log/easylogging++.h"
-#include "array.hpp"
 #include "type.hpp"
 #include "util.hpp"
 
@@ -67,9 +66,11 @@ protected:
 
 	std::string graph;
 
-	GenericArray *splitter_buffer;
+	char *splitter_buffer;
 
-	int64 current_position;
+	char *ptr_current_position;
+
+	char *ptr_last_position;
 
 	void split();
 
@@ -104,19 +105,18 @@ SplitterBuffer<IdType>::SplitterBuffer(std::string graph, int64 edge_data_size, 
 	this-> elements_buffer = buffer_size/ edge_size;
 	this->id_size = sizeof(IdType);
 
-	splitter_buffer = new GenericArray (edge_size, elements_buffer);
+	splitter_buffer = new char[edge_size * elements_buffer];
+	ptr_current_position = splitter_buffer;
+	ptr_last_position = splitter_buffer + edge_size * elements_buffer;
 
 	this->file_offsets.resize(partitions);// = new std::vector<int64>(partitions);
 	this->partition_counters.resize(partitions);// = new std::vector<int64>(partitions);
 
 	//memset(this->file_offsets, 0, sizeof(int64) * partitions);
-
-	current_position = 0;
-
 }
 
 
-template <class IdType>
+/*template <class IdType>
 void SplitterBuffer<IdType>::checkCounters(){
 
 	int64 counters[partitions];
@@ -131,7 +131,8 @@ void SplitterBuffer<IdType>::checkCounters(){
 	}
 	LOG(INFO)<< "";
 
-}
+}*/
+/*
 
 
 template <class IdType>
@@ -167,6 +168,7 @@ void SplitterBuffer<IdType>::checkCounters2(int64 partition_initial_positions[],
 	LOG(INFO)<< "";
 
 }
+*/
 
 
 template <class IdType> inline
@@ -180,7 +182,7 @@ IdType SplitterBuffer<IdType>::countEdge(IdType in_id, IdType out_id){
 	IdType partition_id = getPartitionId(in_id, out_id);
 	//checking partition by source
 	if ( partition_id >= partitions){
-		LOG(INFO) << "Increasing partitions to "<< partition_id+1;
+		//LOG(INFO) << "Increasing partitions to "<< partition_id+1;
 		partitions = partition_id  + 1;
 		partition_counters.resize(partition_id  + 1);
 	}
@@ -191,17 +193,16 @@ IdType SplitterBuffer<IdType>::countEdge(IdType in_id, IdType out_id){
 
 template <class IdType> inline
 void SplitterBuffer<IdType>::add(IdType in_id, IdType out_id, void* edge_data){
-	if(current_position >= elements_buffer ){
+	if(ptr_current_position >= ptr_last_position){
 		split();
 	}
-
 	countEdge(in_id, out_id);
-	char * element_ptr = splitter_buffer->get_element(current_position++);
-	memcpy(element_ptr, &in_id, id_size);
-	memcpy(element_ptr + id_size, &out_id, id_size);
+	memcpy(ptr_current_position, &in_id, id_size);
+	memcpy(ptr_current_position + id_size, &out_id, id_size);
 	if(is_edge_data ){
-		memcpy(element_ptr + (id_size<<1), edge_data, edge_data_size);
+		memcpy(ptr_current_position+ (id_size<<1), edge_data, edge_data_size);
 	}
+	ptr_current_position += edge_size;
 }
 
 
@@ -214,7 +215,7 @@ void SplitterBuffer<IdType>::split(){
 
 	LOG(INFO) << "Splitting buffer";
 	//splitting value
-	char* base_ptr = splitter_buffer->address();
+	char* base_ptr = splitter_buffer;
 	int64 ptr = 0; //splitter_buffer->address();
 	int64 last_ptr; //ptr + current_position * edge_size;
 
@@ -309,7 +310,7 @@ void SplitterBuffer<IdType>::split(){
 		//resetting counter for the next split
 		partition_counters[i] = 0;
 	}
-	current_position = 0;
+	ptr_current_position = splitter_buffer;
 
 }
 

@@ -137,13 +137,14 @@ namespace mflash{
 
 
   inline int MappedStream::next_int(int64 step){
-    int v = *( (int*) next(INT_SIZE, step) );
+	  return  *( (int*) next(INT_SIZE, step) );
+    //int v = *( (int*) next(INT_SIZE, step) );
     /*if(reverse)
       return ((v >> 24)  & 0xFF)
             +(((v >> 16) & 0xFF) << 8)
             +(((v >>  8) & 0xFF) << 16)
             + ((v        & 0xFF) << 24);*/
-    return v;
+  //  return v;
   }
   /*
   inline int64 Stream::next_int64(){
