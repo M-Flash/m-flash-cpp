@@ -212,11 +212,12 @@ void convert_adjlist(std::string graph_file, SplitterBuffer<IdType> & splitter )
 	/*** PHASE 1 - count ***/
 	IdType from, to;
 	EdgeDataType val;
+	int64 sum =0;
 	while (fgets(s, maxlen, inf) != NULL) {
 
 		linenum++;
 		if (bytesread - lastlog >= 500000000) {
-			LOG(INFO) << "Read " << linenum << " lines, "<< bytesread / 1024 / 1024. << " MB" << std::endl;
+			LOG(INFO) << "Read " << linenum << " lines, "<< bytesread / 1024 / 1024. << " MB "<< std::endl;
 			lastlog = bytesread;
 		}
 		FIXLINE(s);
@@ -228,15 +229,15 @@ void convert_adjlist(std::string graph_file, SplitterBuffer<IdType> & splitter )
 			continue; // Comment
 		char * t = strtok(s, delims);
 
-		//parse(from, t);
-		from = atol(t);
+		parse(from, t);
+		//from = atol(t);
 		t = strtok(NULL, delims);
 		if (t != NULL) {
 			IdType num = atol(t);
 			IdType i = 0;
 			while ((t = strtok(NULL, delims)) != NULL) {
-				to = atol(t);
-				//parse(to, t);
+				//to = atol(t);
+				parse(to, t);
 				if (from != to) {
 					splitter.add(from, to, (char*)&val);
 				}
@@ -250,6 +251,7 @@ void convert_adjlist(std::string graph_file, SplitterBuffer<IdType> & splitter )
 			}
 		}
 	}
+	LOG(INFO) << sum;
 	splitter.flush();
 	free(s);
 	fclose(inf);
