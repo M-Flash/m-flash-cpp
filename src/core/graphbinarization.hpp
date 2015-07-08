@@ -144,7 +144,7 @@ void convert_edgelist(std::string graph_file, SplitterBuffer<IdType> & splitter 
 
 		linenum++;
 		if (linenum % 10000000 == 0) {
-			LOG(DEBUG) << "Read " << linenum << " lines, " << bytesread / 1024 / 1024. << " MB";
+			LOG(INFO) << "Read " << linenum << " lines, " << bytesread / 1024 / 1024. << " MB";
 		}
 		FIXLINE(s);
 		bytesread += strlen(s);
@@ -183,6 +183,7 @@ void convert_edgelist(std::string graph_file, SplitterBuffer<IdType> & splitter 
 			splitter.add(from, to, &val);
 		}
 	}
+	splitter.flush();
 	fclose(inf);
 }
 

@@ -23,37 +23,57 @@ class SplitterBufferExtended: public SplitterBuffer<IdType>{
 
 private:
 	std::vector<int64> block_counters;
+	int64 bpartitions;
 
 	IdType countEdge(IdType in_id, IdType out_id);
+public:
+	void printCounters();
 
 public:
-	SplitterBufferExtended(std::string graph, int64 edge_data_size, int64 buffer_size, int64 ids_by_partitions, int64 partitions = 0, bool in_split = false);
+	SplitterBufferExtended(std::string graph, int64 edge_data_size, int64 buffer_size, int64 ids_by_partitions, bool in_split = false, int64 partitions = 0 );
 };
 
 template <class IdType> inline
-SplitterBufferExtended<IdType>::SplitterBufferExtended(std::string graph, int64 edge_data_size, int64 ids_by_partitions, int64 buffer_size, int64 partitions, bool in_split)
-: SplitterBufferExtended<IdType>(graph, edge_data_size, ids_by_partition, buffer_size, partitions, in_split){
+SplitterBufferExtended<IdType>::SplitterBufferExtended(std::string graph, int64 edge_data_size, int64 ids_by_partition, int64 buffer_size, bool in_split, int64 partitions)
+: SplitterBuffer<IdType>(graph, edge_data_size, ids_by_partition, buffer_size, partitions, in_split){
+	this->bpartitions = partitions;
 	this->partition_counters.resize(partitions * partitions);
 
 }
 
 template <class IdType> inline
 IdType SplitterBufferExtended<IdType>::countEdge(IdType in_id, IdType out_id){
-	int64 partitions = this->partitions;
-	IdType partition_id = SplitterBuffer<IdType>::countEdge(id_id, out_id);
-	IdType partition2_id = SplitterBuffer<IdType>::getPartitionId(out_id, id_id);
+	IdType partition_id = SplitterBuffer<IdType>::countEdge(in_id, out_id);
+	IdType partition2_id = SplitterBuffer<IdType>::getPartitionId(out_id, in_id);
+
+	int64 newPartitions = max(partition2_id, partition_id)+1;
 	//checking block_counters
-	if ( this->partitions != current_size){
-		block_counters.resize( (this->partitions )* (this->partitions ));
+	if ( newPartitions > bpartitions){
+		printCounters();
+		block_counters.resize( newPartitions * newPartitions);
+
 		//reallocating counters
-		for(int i = partition_id-1; i > 0; i--){
-			memcpy(block_counters.data() + sizeof(int64) * this->partitions, block_counters.data() + sizeof(int64) * partitions, sizeof(int64) * partitions);
+		for(int i = bpartitions-1; i > 0; i--){
+			memcpy(block_counters.data() +  i * newPartitions, block_counters.data() +  i * bpartitions, sizeof(int64) * bpartitions);
+			memset(block_counters.data() +  i * bpartitions, 0, sizeof(int64) * (newPartitions-bpartitions));
 		}
+		bpartitions = newPartitions;
 	}
-	partition_counters[partition_id] ++;
+	IdType id  = partition_id * bpartitions + partition2_id;
+	block_counters[id] ++;
 	return partition_id ;
 }
 
+
+template <class IdType>
+void SplitterBufferExtended<IdType>::printCounters(){
+	for (int i = 0 ; i<bpartitions; i++){
+		for (int j = 0 ; j<bpartitions; j++){
+			std::cout<<block_counters[i * bpartitions + j]<<"\t";
+		}
+		std::cout<<std::endl;
+	}
+}
 
 }
 #endif

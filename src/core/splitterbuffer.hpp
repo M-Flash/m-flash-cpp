@@ -76,7 +76,7 @@ protected:
 
 	IdType getPartitionId(IdType in_id, IdType out_id);
 
-	IdType countEdge(IdType in_id, IdType out_id);
+	virtual IdType countEdge(IdType in_id, IdType out_id);
 
 	void checkCounters();
 	void checkCounters2(int64 partition_initial_positions[], int64 partition_offset_positions[]);

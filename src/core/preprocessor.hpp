@@ -21,11 +21,13 @@ namespace mflash{
 template <class IdType>
 class Preprocessor{
 	public:
-		static void process (std::string file_graph, char separator, bool edgelist, SplitterBuffer<IdType> &splitter);
+		template <class Splitter>
+		static void process (std::string file_graph, char separator, bool edgelist, Splitter &splitter);
 };
 
 template <class IdType>
-void Preprocessor<IdType>::process(std::string file_graph, char separator, bool edgelist, SplitterBuffer<IdType> &splitter){
+template <class Splitter>
+void Preprocessor<IdType>::process(std::string file_graph, char separator, bool edgelist, Splitter &splitter){
 	MappedStream in(file_graph);
 
 	IdType v1 = 		0;
@@ -69,7 +71,8 @@ void Preprocessor<IdType>::process(std::string file_graph, char separator, bool 
 		if (b == end_line || b == end_line2){
 
 			//when the line content \n\r
-			if(in.next_int() == end_line2) in.set_position(in.position()- sizeof(char));
+			if(in.next() != end_line2)
+				in.set_position(in.position()- sizeof(char));
 
 			if(!isQuantity || edgelist){
 				splitter.add(v1, v2, &value);

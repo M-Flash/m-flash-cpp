@@ -9,22 +9,21 @@ INITIALIZE_EASYLOGGINGPP
 using namespace mflash;
 int main(){
 
-	std::string graph_file = "/hugo/datasets/.M-FLASH/0.partition";
-	SplitterBuffer<int> splitter(graph_file, 0, 134217728, 8589934592, 0, true);
+	LOG(INFO)<<"Starting Binary splitter!!";
+	std::string graph_file = "/hugo/datasets/yahoo1/0.partition";
+	SplitterBuffer<int> splitter(graph_file, 0, 268435456, 8589934592, 0, true);
 
 	MappedStream stream (graph_file);
 
 	int from, to;
 	EmptyField field;
 	stream.set_position(0 );
-	int64 sum = 0;
 	while(stream.has_remain()){
 		from = stream.next_int();
 		to = stream.next_int();
-		//sum += from + to;
 		splitter.add(from, to, &field);
 	}
-	std::cout<<sum<<std::endl;
-
 	splitter.flush();
+	LOG(INFO)<<"Binary splitter ready!!";
+
 }

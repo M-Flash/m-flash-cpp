@@ -9,9 +9,10 @@ INITIALIZE_EASYLOGGINGPP
 using namespace mflash;
 int main(){
 	//std::string graph_file = "/hugo/datasets/tiny-graph/tiny-graph";
-	std::string graph_file = "/hugo/datasets/yahoo.txt";
-	//SplitterBuffer<int> splitter(graph_file, 0, 3, 24);
-	SplitterBuffer<int> splitter(graph_file, 0, 134217728, 8589934592);
-	convert_adjlist<EmptyField, int>(graph_file, splitter );
+	//std::string graph_file = "/hugo/datasets/twitter/twitter";
+	std::string graph_file = "/hugo/datasets/lj/lj";
+	//SplitterBuffer<int> splitter(graph_file, 0, 11, 24);
+	SplitterBuffer<int> splitter(graph_file, 0, 4847573, 8589934592);
+	convert_edgelist<EmptyField, int>(graph_file, splitter );
 	return 0;
 }
