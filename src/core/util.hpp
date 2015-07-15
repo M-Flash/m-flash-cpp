@@ -17,6 +17,7 @@
 #include <map>
 #include <boost/filesystem.hpp>
 
+#include "../util/cmdopts.hpp"
 #include "../core/type.hpp"
 #include "../../log/easylogging++.h"
 
