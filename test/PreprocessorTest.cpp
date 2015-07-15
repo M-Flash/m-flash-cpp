@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
 
 
 	//LiveJournal
-	std::string graph_file = "/hugo/datasets/lj/lj";
+	std::string graph_file = "/run/media/hugo/hugo/datasets/lj/lj";
 	int64 vertices_partition = 4847573;
 	int64 buffer_size = 1024L*1024*1024 * 8;
 	bool edgelist = true;

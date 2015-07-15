@@ -12,7 +12,7 @@ INCLUDES = $(MFLASH_DIR) $(BOOST_DIR)
 CPP = g++
 CPPFLAGS = -O3 $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11 
 CPPFLAGS-DEBUG =  -g $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
-LINKERFLAGS = -lz $(BOOST_LIBRARIES) $(SO_LIBRARIES)
+LINKERFLAGS =  $(BOOST_LIBRARIES) $(SO_LIBRARIES)
 DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find . -name '*.hpp')
 

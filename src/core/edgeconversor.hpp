@@ -61,8 +61,12 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 		while(b != end_line){
 		  b = in.next();
 		}
-		if(in.next() != end_line2)
-			in.set_position(in.position()- sizeof(char));
+		b = in.next();
+		//when the line content \n\r
+		while( b == end_line || b==end_line2){
+			b = in.next();
+		}
+		in.set_position(in.position()- sizeof(char));
 		continue;
 	  }
 	  if (b == separator || b == separator2 || b == separator3){
@@ -76,10 +80,12 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 		continue;
 	  }
 		if (b == end_line || b == end_line2){
-
+			b = in.next();
 			//when the line content \n\r
-			if(in.next() != end_line2)
-				in.set_position(in.position()- sizeof(char));
+			while( b == end_line || b==end_line2){
+				b = in.next();
+			}
+			in.set_position(in.position()- sizeof(char));
 
 			if(!isQuantity || edgelist){
 				splitter.add(v1, v2, &value);
