@@ -45,7 +45,29 @@ enum FieldType {
 };
 
 enum BlockType {
-	M_FLASH, X_STREAM
+	DENSE, SPARSE
+};
+
+enum MatrixProperty{
+	VERTICES,
+	PARTITIONS, // Beta
+	VERTICES_PARTITION,
+	EDGES_BLOCKS
+};
+
+struct MatrixProperties{
+	int64 vertices;
+	int64 partitions;
+	int64 vertices_partition;
+	int64 *edges_by_block;
+
+	MatrixProperties(int64 vertices, int64 partitions, int64 vertices_partition, int64 edges_by_block[]){
+		this->vertices = vertices;
+		this->partitions = partitions;
+		this->vertices_partition = vertices_partition;
+		this->edges_by_block = edges_by_block;
+	}
+	MatrixProperties(){}
 };
 
 struct BlockProperties {

@@ -4,14 +4,15 @@
 
 MFLASH_DIR = -I/hugo/project/code/mflash-cpp/
 BOOST_DIR = -I/usr/lib64/
-BOOST_LIBRARIES = -lboost_filesystem -lboost_system
+BOOST_LIBRARIES = -lboost_filesystem -lboost_system -lboost_log
+SO_LIBRARIES = 
 
 INCLUDES = $(MFLASH_DIR) $(BOOST_DIR)
 
 CPP = g++
-CPPFLAGS = -O3 $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
-CPPFLAGS-DEBUG = -O0 -g $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
-LINKERFLAGS = -lz $(BOOST_LIBRARIES) 
+CPPFLAGS = -O3 $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11 
+CPPFLAGS-DEBUG =  -g $(INCLUDES) -Wall -Wno-strict-aliasing -std=c++11
+LINKERFLAGS = -lz $(BOOST_LIBRARIES) $(SO_LIBRARIES)
 DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find . -name '*.hpp')
 

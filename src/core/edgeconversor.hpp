@@ -12,22 +12,22 @@
 #include <string>
 
 #include "../../log/easylogging++.h"
-#include "splitterbuffer.hpp"
 #include "mapped_stream.hpp"
+#include "splitterbuffer.hpp"
 
 namespace mflash{
 
 
 template <class IdType>
-class Preprocessor{
+class EdgeConversor{
 	public:
 		template <class Splitter>
-		static void process (std::string file_graph, char separator, bool edgelist, Splitter &splitter);
+		static void process (const std::string file_graph, const char separator, const bool edgelist, Splitter &splitter);
 };
 
 template <class IdType>
 template <class Splitter>
-void Preprocessor<IdType>::process(std::string file_graph, char separator, bool edgelist, Splitter &splitter){
+void EdgeConversor<IdType>::process(const std::string file_graph, const char separator, const bool edgelist, Splitter &splitter){
 	MappedStream in(file_graph);
 
 	IdType v1 = 		0;
@@ -35,30 +35,37 @@ void Preprocessor<IdType>::process(std::string file_graph, char separator, bool 
 	bool isQuantity = !edgelist;
 	bool isInVertice = 	true;
 
-	char comment = '#';
-	char comment2 = '%';
-	char end_line = '\n';
-	char end_line2 = '\r';
+	const char comment = '#';
+	const char comment2 = '%';
+	const char end_line = '\n';
+	const char end_line2 = '\r';
+	//char separator = ' ';
+	const char separator2 = '\t';
+	const char separator3 = ' ';
 
 	EmptyField value;
 
+/*
 
 	const int64 MEGABYTE = 1024 * 1024;
 	const int64 STEP_INFO = 500 * MEGABYTE;
+*/
 
 	while(in.has_remain()){
 		char b = in.next();
-		if( (in.current_ptr-in.ptr) % STEP_INFO ==0){
+		/*if( (in.current_ptr-in.ptr) % STEP_INFO ==0){
 			LOG(INFO)<<"Processed: " << (in.current_ptr-in.ptr) / MEGABYTE << "MB";
-		}
+		}*/
 		//removing comment line
 	  if(b == comment || b == comment2){
 		while(b != end_line){
 		  b = in.next();
 		}
+		if(in.next() != end_line2)
+			in.set_position(in.position()- sizeof(char));
 		continue;
 	  }
-	  if (b == separator){
+	  if (b == separator || b == separator2 || b == separator3){
 		if(!isInVertice && !isQuantity){ //
 			splitter.add(v1, v2, &value);
 		}else{
@@ -85,7 +92,7 @@ void Preprocessor<IdType>::process(std::string file_graph, char separator, bool 
 		}
 		if(b<48 || b > 57){
 			LOG(ERROR) << "The character '" << b << "' was not recognized.";
-			assert(true);
+			assert(false);
 		}
 
 		if(isInVertice){

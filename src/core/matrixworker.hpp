@@ -393,7 +393,7 @@ void MatrixWorker<E>::operate(MAlgorithm<VSource, VDestination, E> &algorithm) {
 		}
 
 		if (last_col != block.get_col()
-				&& BlockType::M_FLASH == properties->type) {
+				&& BlockType::DENSE == properties->type) {
 			last_col = block.get_col();
 			LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
 			load_fields<VSource, VDestination>(FieldType::SOURCE,
@@ -446,7 +446,7 @@ void MatrixWorker<E>::operate(MAlgorithm<VSource, VDestination, E> &algorithm) {
 		EdgeListThread *thread_;
 		EdgeListThread *thread2_;
 		ElementIdSize id_size = matrix->get_element_id_size();
-		if (BlockType::M_FLASH == properties->type) {
+		if (BlockType::DENSE == properties->type) {
 			LOG (INFO)<< "----MODE: " << "M-FLASH";
 			thread_ = new EdgeListThread(block.get_file(), *properties, 0, 0, matrix->is_transpose(), id_size, processor);
 			//thread2_ = new EdgeListThread(block.get_file(), *properties, 0, 1, matrix->is_transpose(), id_size, processor);
@@ -551,7 +551,7 @@ BlockProperties** MatrixWorker<E>::block_preprocessing(int block_count) {
 			new_block_size_bytes = edge_count * (vertex_size + edge_size);
 			threashold = 1.0 / block_count + 2 * block_file_size / block_size;
 
-			properties[block_position] = new BlockProperties(BlockType::M_FLASH,
+			properties[block_position] = new BlockProperties(BlockType::DENSE,
 					0, file_size(block.get_file()));
 			//check type of block
 			if (threashold < 1 && false) {
@@ -574,7 +574,7 @@ BlockProperties** MatrixWorker<E>::block_preprocessing(int block_count) {
 
 				/* EdgeListWriter<V,E>* thread = new EdgeListWriter<V,E>( &writer, block.get_file(), *properties[block_position],  in_worker);
 				 thread->call();*/
-				properties[block_position]->type = BlockType::X_STREAM;
+				properties[block_position]->type = BlockType::SPARSE;
 				properties[block_position]->offset = stream_offset;
 				properties[block_position]->size = new_block_size_bytes;
 				stream_offset += new_block_size_bytes;

@@ -1,7 +1,7 @@
-#include "../src/core/splitterbuffer.hpp"
 #include "../src/core/graphbinarization.hpp"
 #include "../src/core/mapped_stream.hpp"
 #include "../log/easylogging++.h"
+#include "../src/core/splitterbuffer.hpp"
 
 
 INITIALIZE_EASYLOGGINGPP

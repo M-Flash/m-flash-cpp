@@ -42,8 +42,6 @@ void static GraphFormatter::execute(std::string graph_file, char separator, Grap
 
 	out_stream.close();
 
-
-
 }
 
 
