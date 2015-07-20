@@ -56,10 +56,13 @@ namespace mflash{
       int64 position();
       void set_position(int64 position);
 
-      char next();
+      char next_char();
       int next_int();
       int next_int(int64 step);
       char* next(int64 bytes, int64 step = 0);
+
+      template<class Type>
+      Type next(int64 step = 0);
 
       bool has_remain();
 
@@ -116,6 +119,7 @@ namespace mflash{
     return /*opposite_direction? current_ptr > last_ptr : */current_ptr < last_ptr;
   }
 
+
   inline char* MappedStream::next(int64 bytes, int64 step){
     char* ptr;
     //if(!opposite_direction){
@@ -127,12 +131,28 @@ namespace mflash{
     }*/
     return ptr;
   }
+
+  template<class Type>
+  inline Type MappedStream::next(int64 step){
+    Type ptr = *( (Type*)current_ptr);
+	current_ptr += sizeof(Type) + step;
+    return ptr;
+  }
+
+
+  /*inline char* MappedStream::next(int64 bytes, int64 step){
+     char* ptr;
+     ptr = current_ptr;
+     current_ptr += bytes + step;
+     return ptr;
+   }*/
+
   inline int MappedStream::next_int(){
     return next_int(0);
   }
 
-  inline char MappedStream::next(){
-    return  *( (char*) next(CHAR_SIZE, 0) );
+  inline char MappedStream::next_char(){
+    return  next<char>();
   }
 
 
