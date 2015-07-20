@@ -69,6 +69,14 @@ struct MatrixProperties{
 		this->edges_by_block = edges_by_block;
 	}
 	MatrixProperties(){}
+
+	int64 getEdgesBlock(int row, int col){
+		if(row >= 0 && row <partitions && col >= 0 && col <partitions){
+			return edges_by_block[row * partitions + col];
+		}
+		assert(false);
+		return 0;
+	}
 };
 
 struct BlockProperties {
