@@ -26,9 +26,8 @@ public:
 class EmptyField {
 };
 
-enum ElementIdSize {
+enum ElementIdType {
 	SIMPLE, DOUBLE,
-//ATOMIC
 };
 
 enum Mode {
@@ -57,12 +56,14 @@ enum MatrixProperty{
 
 struct MatrixProperties{
 	int64 vertices;
+	int64 idSize;
 	int64 partitions;
 	int64 vertices_partition;
 	int64 *edges_by_block;
 
-	MatrixProperties(int64 vertices, int64 partitions, int64 vertices_partition, int64 edges_by_block[]){
+	MatrixProperties(int64 vertices, int64 idSize, int64 partitions, int64 vertices_partition, int64 edges_by_block[]){
 		this->vertices = vertices;
+		this->idSize = idSize;
 		this->partitions = partitions;
 		this->vertices_partition = vertices_partition;
 		this->edges_by_block = edges_by_block;

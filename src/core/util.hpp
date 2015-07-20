@@ -175,6 +175,7 @@ void update_matrix_properties(std::string file_graph, MatrixProperties &properti
 	std::ofstream file;
 	file.open(f_properties.c_str());
 	file << properties.vertices << std::endl;
+	file << properties.idSize<< std::endl;
 	file << properties.partitions<< std::endl;
 	file << properties.vertices_partition<< std::endl;
 
@@ -187,23 +188,32 @@ void update_matrix_properties(std::string file_graph, MatrixProperties &properti
 	file.close();
 }
 
+void update_matrix_properties(std::string file_graph, MatrixProperties *properties) {
+	update_matrix_properties(file_graph, *properties);
+}
 
-MatrixProperties load_matrix_properties(std::string file_graph) {
+
+MatrixProperties* load_matrix_properties(std::string file_graph) {
 
 	std::string filename = get_properties_file(file_graph);
+
+	if(!exist_file(filename))
+		return NULL;
+
 	std::ifstream file;
 	file.open(filename.c_str());
 
-	MatrixProperties properties;
+	MatrixProperties *properties = new MatrixProperties();
 
 	//std::getline(file, line);
-	file >> properties.vertices;
-	file >> properties.partitions;
-	file >> properties.vertices_partition;
-	properties.edges_by_block = new int64[properties.partitions * properties.partitions];
-	for(int i = 0 ; i<properties.partitions ; i++){
-		for(int j = 0 ; j<properties.partitions ; j++){
-			file>>properties.edges_by_block[i*properties.partitions  + j];
+	file >> properties->vertices;
+	file >> properties->idSize;
+	file >> properties->partitions;
+	file >> properties->vertices_partition;
+	properties->edges_by_block = new int64[properties->partitions * properties->partitions];
+	for(int i = 0 ; i<properties->partitions ; i++){
+		for(int j = 0 ; j<properties->partitions ; j++){
+			file>>properties->edges_by_block[i*properties->partitions  + j];
 		}
 	}
 
