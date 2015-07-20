@@ -52,19 +52,19 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 */
 
 	while(in.has_remain()){
-		char b = in.next();
+		char b = in.next_char();
 		/*if( (in.current_ptr-in.ptr) % STEP_INFO ==0){
 			LOG(INFO)<<"Processed: " << (in.current_ptr-in.ptr) / MEGABYTE << "MB";
 		}*/
 		//removing comment line
 	  if(b == comment || b == comment2){
 		while(b != end_line){
-		  b = in.next();
+		  b = in.next_char();
 		}
-		b = in.next();
+		b = in.next_char();
 		//when the line content \n\r
 		while( b == end_line || b==end_line2){
-			b = in.next();
+			b = in.next_char();
 		}
 		in.set_position(in.position()- sizeof(char));
 		continue;
@@ -80,10 +80,10 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 		continue;
 	  }
 		if (b == end_line || b == end_line2){
-			b = in.next();
+			b = in.next_char();
 			//when the line content \r\n
 			while( b == end_line || b==end_line2){
-				b = in.next();
+				b = in.next_char();
 			}
 			in.set_position(in.position()- sizeof(char));
 
