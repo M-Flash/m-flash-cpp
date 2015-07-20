@@ -81,7 +81,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 	  }
 		if (b == end_line || b == end_line2){
 			b = in.next();
-			//when the line content \n\r
+			//when the line content \r\n
 			while( b == end_line || b==end_line2){
 				b = in.next();
 			}
