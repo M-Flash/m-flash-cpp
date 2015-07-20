@@ -68,6 +68,10 @@ string get_mflash_directory(string graph) {
 	return path;
 }
 
+void clean_mflash_directory(string graph){
+	boost::filesystem::remove_all(get_mflash_directory(graph));
+}
+
 string get_graph_directory(string graph) {
 	string path = get_mflash_directory(graph) + FILE_SEPARATOR + get_filename(graph) + FILE_SEPARATOR;
 	boost::filesystem::path dir(path);
@@ -162,13 +166,14 @@ ios::openmode get_file_properties(string file, bool write) {
  * # LINE	| DESCRIPTION
  *	1		| vertices
  *	2		| partitions or beta
- *	3		| vertices_partitions
- *	4		| edges in block 0,0
- *	5		| edges in block 0,1
+ *	3		| id size: bytes required to store data in the computation
+ *	4		| vertices_partitions
+ *	5		| edges in block 0,0
+ *	6		| edges in block 0,1
  *	.. 		|
- *	3+beta	| edges in block 0,beta-1
+ *	5+beta	| edges in block 0,beta-1
  *	.. 		|
- *	3 + beta*beta	| edges in block beta-1,beta-1
+ *	5 + beta*beta	| edges in block beta-1,beta-1
  */
 void update_matrix_properties(std::string file_graph, MatrixProperties &properties) {
 	string f_properties = get_properties_file(file_graph);
@@ -222,29 +227,58 @@ MatrixProperties* load_matrix_properties(std::string file_graph) {
 
 }
 
-template <class ID_TYPE, class EdgeType>
-int64 getEdgeSize(){
+template <class E, class IdType>
+inline int64 getEdgeSize(){
 	int64 size = 0;
-	#if Edgetype != EmptyField
-		size += sizeof(EdgeType)
+	#if E != EmptyField
+		size += sizeof(E)
 	#endif
-	return size +  (sizeof(ID_TYPE)<<2);
+	return size +  (sizeof(IdType)<<2);
 
 }
 
-template <class EdgeType>
-int64 getEdgeDataSize(){
+template <class E>
+inline int64 getEdgeDataSize(){
 	int64 size = 0;
 	#if Edgetype != EmptyField
-		size += sizeof(EdgeType)
+		size += sizeof(E)
 	#endif
 	return size;
 }
 
 template <class V>
-int64 getVeticesByPartition() {
-	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ sizeof(V);
+inline int64 getVeticesByPartition() {
+	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (2 * sizeof(V));
 }
+
+inline int64 getVeticesByPartition(int64 vertex_size) {
+	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (2 * vertex_size);
+}
+
+/**
+ *
+ * int64 edge_size = 2 * sizeof(IdType) + edge_data_size;
+				for (int64 j = 0; j < partitions; j++){
+					ratio = ((double)1)/partitions + ( ((double)2) * counters[i * partitions + j] * edge_size / vertices_by_partition);
+					block_types[j] = ratio<1? BlockType::SPARSE: BlockType::DENSE;
+				}
+ *
+ */
+
+template<class E, class IdType>
+inline double getBlockRatio(int partitions, int64 vertices_by_partition, int64 edges) {
+	return ((double)1)/partitions + ( ((double)2) * edges * getEdgeSize<E, IdType>()/ vertices_by_partition);
+}
+
+
+
+
+template<class E, class IdType>
+inline BlockType getBlockType(int partitions, int64 vertices_by_partition, int64 edges) {
+	double ratio = getBlockRatio<E, IdType>(partitions, vertices_by_partition, edges);
+	return ratio < 1.0 ? BlockType::SPARSE : BlockType::DENSE;
+}
+
 
 /*string get_mflash_directory(string graph) {
  string path = get_parent_directory(graph);

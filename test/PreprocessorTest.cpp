@@ -42,6 +42,6 @@ int main(int argc, char* argv[]){
 	std::string format = "edgelist";
 
 
-	mflash::convert<float, EmptyField, int>(graph_file, format);
+	mflash::convert<EmptyField, int>(graph_file, sizeof(float), format);
 	return 0;
 }

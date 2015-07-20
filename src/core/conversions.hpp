@@ -27,8 +27,8 @@ namespace mflash{
 
 	struct MatrixProperties;
 
-	template <class V, class E = EmptyField, class IdType = int>
-	MatrixProperties convert(const std::string graph_file, std::string file_type_str = "null"){
+	template <class E = EmptyField, class IdType = int>
+	MatrixProperties convert(const std::string graph_file, int vertex_size, std::string file_type_str = "null"){
 
 		LOG(INFO) << "==== PREPROCESSING ==== ";
 		if(file_type_str == "null"){
@@ -36,7 +36,7 @@ namespace mflash{
 		}
 
 		int64 buffer_size = get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE);
-		int64 vertices_by_partition = getVeticesByPartition<V>();
+		int64 vertices_by_partition = getVeticesByPartition(vertex_size);
 		int64 edge_data_size = mflash::getEdgeSize<IdType, E>();
 
 
@@ -50,6 +50,7 @@ namespace mflash{
 		}
 
 		LOG(INFO) << "==== DIVIDING IN PARTITIONS ==== ";
+		clean_mflash_directory(graph_file);
 		SplitterBufferWithBlockCounting<IdType> *splitter = new SplitterBufferWithBlockCounting<IdType> (graph_file, edge_data_size, buffer_size, vertices_by_partition, true , "tmp");
 
 		if (file_type_str == "adjlist" || file_type_str == "edgelist"){
@@ -81,10 +82,10 @@ namespace mflash{
 				std::vector<BlockType> block_types(partitions);
 				//checking block density
 				double ratio;
-				int64 edge_size = 2 * sizeof(IdType) + edge_data_size;
+				//int64 edge_size = 2 * sizeof(IdType) + edge_data_size;
 				for (int64 j = 0; j < partitions; j++){
-					ratio = ((double)1)/partitions + ( ((double)2) * counters[i * partitions + j] * edge_size / vertices_by_partition);
-					block_types[j] = ratio<1? BlockType::SPARSE: BlockType::DENSE;
+					//ratio = ((double)1)/partitions + ( ((double)2) * counters[i * partitions + j] * edge_size / vertices_by_partition);
+					block_types[j] =  getBlockType<E, IdType>(partitions, vertices_by_partition, counters[i * partitions + j]); //ratio<1? BlockType::SPARSE: BlockType::DENSE;
 				}
 				SplitterBufferExtended<IdType> psplitter (graph_file, 0, buffer_size, vertices_by_partition, false, i, block_types);
 
