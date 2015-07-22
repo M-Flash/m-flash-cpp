@@ -37,7 +37,7 @@ namespace mflash{
 
 		int64 buffer_size = get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE);
 		int64 vertices_by_partition = getVeticesByPartition(vertex_size);
-		int64 edge_data_size = mflash::getEdgeSize<IdType, E>();
+		int64 edge_data_size = mflash::getEdgeSize<E, IdType>();
 
 
 		if(file_type_str == "null"){

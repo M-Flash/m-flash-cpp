@@ -91,7 +91,7 @@ namespace mflash{
 		delete stream;
 	}
 
-	template <class E, class IdType, class VSource, class VDestination>
+template <class E, class IdType, class VSource, class VDestination>
 template <class MALGORITHM>
 void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITHM &algorithm, int64 step) {
 	E edge_data;

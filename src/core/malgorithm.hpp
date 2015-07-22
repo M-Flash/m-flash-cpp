@@ -35,13 +35,13 @@ public:
 	 * Called for each edge to transfers data since source to destination. On the destination is accumulated temporal state for the destination vertex,
 	 * if it is used multi-thread each thread maintain its own accumulator.
 	 */
-	virtual void gather(MatrixWorker<E, IdType>  &worker, Element<VSource> &source,
+	virtual void gather(MatrixWorker<E, IdType>  &worker, Element<VSource, IdType> &source,
 			Element<VDestination, IdType> &destination, E &edge_data) = 0;
 
 	/**
 	 * Called to combine accumulators between threads.
 	 */
-	virtual void process(Element<VDestination> &accumulator1,
+	virtual void process(Element<VDestination, IdType> &accumulator1,
 			Element<VDestination, IdType> &accumulator2,
 			Element<VDestination, IdType> &out_accumulator) = 0;
 

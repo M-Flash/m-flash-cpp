@@ -12,7 +12,7 @@ typedef long long int64;
 
 namespace mflash {
 
-template<class V, class IdType = int>
+template<class V, class IdType>
 class Element {
 public:
 	IdType id;

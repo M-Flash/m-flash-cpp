@@ -65,7 +65,7 @@ public:
 
 };
 
-template<class V>
+template<class V, class IdType>
 class Array: public GenericArray {
 protected:
 	V* address_wrapped;
@@ -90,26 +90,26 @@ public:
 	void set_element(int64 pos, V* value);
 	void set_offset(int64 offset);
 
-	static V operate(Operator<V> &operator_, Array<V> &left, Array<V> &right,
-			Array<V> &out);
-	static V operate(ZeroOperator<V> &operator_, Array<V> &left);
-	static V operate(UnaryOperator<V> &operator_, Array<V> &left,
-			Array<V> &out);
-	static V operate(BinaryOperator<V> &operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out);
-	static V operate(UnaryReducer<V> &operator_, Array<V> &left);
-	static V operate(BinaryReducer<V> &operator_, Array<V> &left,
-			Array<V> &right);
+	static V operate(Operator<V, IdType> &operator_, Array<V, IdType> &left, Array<V, IdType> &right,
+			Array<V, IdType> &out);
+	static V operate(ZeroOperator<V, IdType> &operator_, Array<V, IdType> &left);
+	static V operate(UnaryOperator<V, IdType> &operator_, Array<V, IdType> &left,
+			Array<V, IdType> &out);
+	static V operate(BinaryOperator<V, IdType> &operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out);
+	static V operate(UnaryReducer<V, IdType> &operator_, Array<V, IdType> &left);
+	static V operate(BinaryReducer<V, IdType> &operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right);
 
 };
 
-template<class V>
+template<class V, class IdType>
 class ThreadDataType {
 protected:
 	int id;
-	Array<V> *left;
-	Array<V> *right;
-	Array<V> *out;
+	Array<V, IdType> *left;
+	Array<V, IdType> *right;
+	Array<V, IdType> *out;
 	int64 step;
 	int64 size;
 	int64 initIdx;
@@ -118,60 +118,60 @@ protected:
 	int64 left_offset;
 	int64 right_offset;
 	int64 out_offset;
-	Operator<V> *operator_;
+	Operator<V, IdType> *operator_;
 
 public:
-	ThreadDataType(int id, Operator<V> &operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out);
+	ThreadDataType(int id, Operator<V, IdType> &operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out);
 
 };
 
-template<class V>
-class ZeroThreadDataType: public ThreadDataType<V> {
+template<class V, class IdType>
+class ZeroThreadDataType: public ThreadDataType<V, IdType> {
 public:
-	ZeroThreadDataType(int id, Operator<V>& operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out) :
-			ThreadDataType<V>(id, operator_, left, right, out) {
+	ZeroThreadDataType(int id, Operator<V, IdType>& operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out) :
+			ThreadDataType<V, IdType>(id, operator_, left, right, out) {
 	}
 	V call();
 };
 
-template<class V>
-class UnaryThreadDataType: protected ThreadDataType<V> {
+template<class V, class IdType>
+class UnaryThreadDataType: protected ThreadDataType<V, IdType> {
 public:
-	UnaryThreadDataType(int id, Operator<V>& operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out) :
-			ThreadDataType<V>(id, operator_, left, right, out) {
+	UnaryThreadDataType(int id, Operator<V, IdType>& operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out) :
+			ThreadDataType<V, IdType>(id, operator_, left, right, out) {
 	}
 	V call();
 };
 
-template<class V>
-class BinaryThreadDataType: public ThreadDataType<V> {
+template<class V, class IdType>
+class BinaryThreadDataType: public ThreadDataType<V, IdType> {
 public:
-	BinaryThreadDataType(int id, Operator<V>& operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out) :
-			ThreadDataType<V>(id, operator_, left, right, out) {
+	BinaryThreadDataType(int id, Operator<V, IdType>& operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out) :
+			ThreadDataType<V, IdType>(id, operator_, left, right, out) {
 	}
 	V call();
 };
 
-template<class V>
-class UnaryReducerThreadDataType: public ThreadDataType<V> {
+template<class V, class IdType>
+class UnaryReducerThreadDataType: public ThreadDataType<V, IdType> {
 public:
-	UnaryReducerThreadDataType(int id, Operator<V>& operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out) :
-			ThreadDataType<V>(id, operator_, left, right, out) {
+	UnaryReducerThreadDataType(int id, Operator<V, IdType>& operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out) :
+			ThreadDataType<V, IdType>(id, operator_, left, right, out) {
 	}
 	V call();
 };
 
-template<class V>
-class BinaryReducerThreadDataType: public ThreadDataType<V> {
+template<class V, class IdType>
+class BinaryReducerThreadDataType: public ThreadDataType<V, IdType> {
 public:
-	BinaryReducerThreadDataType(int id, Operator<V>& operator_, Array<V> &left,
-			Array<V> &right, Array<V> &out) :
-			ThreadDataType<V>(id, operator_, left, right, out) {
+	BinaryReducerThreadDataType(int id, Operator<V, IdType>& operator_, Array<V, IdType> &left,
+			Array<V, IdType> &right, Array<V, IdType> &out) :
+			ThreadDataType<V, IdType>(id, operator_, left, right, out) {
 	}
 	V call();
 };
@@ -266,95 +266,95 @@ inline void GenericArray::set_element(int64 pos, char* value) {
  Array
  */
 
-template<class V>
-inline V* Array<V>::get_element(int64 pos) {
+template<class V, class IdType>
+inline V* Array<V, IdType>::get_element(int64 pos) {
 	return offset_address_wrapped + pos;
 }
 
-template<class V>
-inline void Array<V>::set_element(int64 pos, V* value) {
+template<class V, class IdType>
+inline void Array<V, IdType>::set_element(int64 pos, V* value) {
 	//memcpy(offset_address_wrapped + pos, value, element_size_);
 	*(offset_address_wrapped + pos) = *value;
 }
 
-template<class V>
-inline void Array<V>::set_offset(int64 pos) {
+template<class V, class IdType>
+inline void Array<V, IdType>::set_offset(int64 pos) {
 	GenericArray::set_offset(pos);
 	offset_address_wrapped = (V*) offset_address;
 }
 
-template<class V>
-V Array<V>::operate(Operator<V> &operator_, Array<V> &left, Array<V> &right,
-		Array<V> &out) {
+template<class V, class IdType>
+V Array<V, IdType>::operate(Operator<V, IdType> &operator_, Array<V, IdType> &left, Array<V, IdType> &right,
+		Array<V, IdType> &out) {
 	V value;
-	UnaryReducer<V> * unary_reducer_ptr =
-			dynamic_cast<UnaryReducer<V> *>(&operator_);
-	BinaryReducer<V> * binary_reducer_ptr =
-			dynamic_cast<BinaryReducer<V> *>(&operator_);
-	ZeroOperator<V> * zero_ptr = dynamic_cast<ZeroOperator<V> *>(&operator_);
-	UnaryOperator<V> * unary_ptr = dynamic_cast<UnaryOperator<V> *>(&operator_);
-	BinaryOperator<V> * binary_ptr =
-			dynamic_cast<BinaryOperator<V> *>(&operator_);
+	UnaryReducer<V, IdType> * unary_reducer_ptr =
+			dynamic_cast<UnaryReducer<V, IdType> *>(&operator_);
+	BinaryReducer<V, IdType> * binary_reducer_ptr =
+			dynamic_cast<BinaryReducer<V, IdType> *>(&operator_);
+	ZeroOperator<V, IdType> * zero_ptr = dynamic_cast<ZeroOperator<V, IdType> *>(&operator_);
+	UnaryOperator<V, IdType> * unary_ptr = dynamic_cast<UnaryOperator<V, IdType> *>(&operator_);
+	BinaryOperator<V, IdType> * binary_ptr =
+			dynamic_cast<BinaryOperator<V, IdType> *>(&operator_);
 
 	if (unary_reducer_ptr != 0) {
-		return Array<V>::operate(*unary_reducer_ptr, left);
+		return Array<V, IdType>::operate(*unary_reducer_ptr, left);
 	}
 
 	if (binary_reducer_ptr != 0) {
-		return Array<V>::operate(*binary_reducer_ptr, left, right);
+		return Array<V, IdType>::operate(*binary_reducer_ptr, left, right);
 	}
 
 	if (zero_ptr != 0) {
-		return Array<V>::operate(*zero_ptr, left);
+		return Array<V, IdType>::operate(*zero_ptr, left);
 	}
 
 	if (unary_ptr != 0) {
-		return Array<V>::operate(*unary_ptr, left, out);
+		return Array<V, IdType>::operate(*unary_ptr, left, out);
 	}
 
 	if (binary_ptr != 0) {
-		return Array<V>::operate(*binary_ptr, left, right, out);
+		return Array<V, IdType>::operate(*binary_ptr, left, right, out);
 	}
 
 	return value;
 }
 
-template<class V>
-V Array<V>::operate(ZeroOperator<V> &operator_, Array<V> &left) {
+template<class V, class IdType>
+V Array<V, IdType>::operate(ZeroOperator<V, IdType> &operator_, Array<V, IdType> &left) {
 	V value;
-	ZeroThreadDataType<V> t(0, operator_, left, left, left);
+	ZeroThreadDataType<V, IdType> t(0, operator_, left, left, left);
 	t.call();
 	return value;
 }
 
-template<class V>
-V Array<V>::operate(UnaryOperator<V> &operator_, Array<V> &left,
-		Array<V> &out) {
+template<class V, class IdType>
+V Array<V, IdType>::operate(UnaryOperator<V, IdType> &operator_, Array<V, IdType> &left,
+		Array<V, IdType> &out) {
 	V value;
-	UnaryThreadDataType<V> t(0, operator_, left, left, out);
+	UnaryThreadDataType<V, IdType> t(0, operator_, left, left, out);
 	t.call();
 	return value;
 }
 
-template<class V>
-V Array<V>::operate(BinaryOperator<V> &operator_, Array<V> &left,
-		Array<V> &right, Array<V> &out) {
+template<class V, class IdType>
+V Array<V, IdType>::operate(BinaryOperator<V, IdType> &operator_, Array<V, IdType> &left,
+		Array<V, IdType> &right, Array<V, IdType> &out) {
 	V value;
-	BinaryThreadDataType<V> t(0, operator_, left, right, out);
+	BinaryThreadDataType<V, IdType> t(0, operator_, left, right, out);
 	t.call();
 	return value;
 }
 
-template<class V>
-V Array<V>::operate(UnaryReducer<V> &operator_, Array<V> &left) {
-	UnaryReducerThreadDataType<V> t(0, operator_, left, left, left);
+template<class V, class IdType>
+V Array<V, IdType>::operate(UnaryReducer<V, IdType> &operator_, Array<V, IdType> &left) {
+	UnaryReducerThreadDataType<V, IdType> t(0, operator_, left, left, left);
 	return t.call();
 }
 
-template<class V>
-V Array<V>::operate(BinaryReducer<V> &operator_, Array<V> &left,
-		Array<V> &right) {
-	BinaryReducerThreadDataType<V> t(0, operator_, left, right, left);
+template<class V, class IdType>
+V Array<V, IdType>::operate(BinaryReducer<V, IdType> &operator_, Array<V, IdType> &left,
+		Array<V, IdType> &right) {
+	BinaryReducerThreadDataType<V, IdType> t(0, operator_, left, right, left);
 	return t.call();
 }
 
@@ -362,9 +362,9 @@ V Array<V>::operate(BinaryReducer<V> &operator_, Array<V> &left,
  ThreadDataType
  */
 
-template<class V> inline ThreadDataType<V>::ThreadDataType(int id,
-		Operator<V> &operator_, Array<V> &left, Array<V> &right,
-		Array<V> &out) {
+template<class V, class IdType> inline ThreadDataType<V, IdType>::ThreadDataType(int id,
+		Operator<V, IdType> &operator_, Array<V, IdType> &left, Array<V, IdType> &right,
+		Array<V, IdType> &out) {
 	this->id = id;
 	this->left = &left;
 	this->right = &right;
@@ -392,10 +392,10 @@ template<class V> inline ThreadDataType<V>::ThreadDataType(int id,
 
 }
 
-template<class V> inline V ZeroThreadDataType<V>::call() {
+template<class V, class IdType> inline V ZeroThreadDataType<V, IdType>::call() {
 	V value;
-	ZeroOperator<V>* operator_ = (ZeroOperator<V>*) (this->operator_);
-	Element<V> element;
+	ZeroOperator<V, IdType>* operator_ = (ZeroOperator<V, IdType>*) (this->operator_);
+	Element<V, IdType> element;
 
 	while (this->left_offset < this->size) {
 		element.id = this->left_offset;
@@ -408,11 +408,11 @@ template<class V> inline V ZeroThreadDataType<V>::call() {
 
 }
 
-template<class V> inline V UnaryThreadDataType<V>::call() {
-	UnaryOperator<V>* operator_ = (UnaryOperator<V>*) (this->operator_);
+template<class V, class IdType> inline V UnaryThreadDataType<V, IdType>::call() {
+	UnaryOperator<V, IdType>* operator_ = (UnaryOperator<V, IdType>*) (this->operator_);
 	V value;
-	Element<V> element;
-	Element<V> out;
+	Element<V, IdType> element;
+	Element<V, IdType> out;
 
 	while (this->left_offset < this->size) {
 		element.id = this->left_offset;
@@ -432,13 +432,13 @@ template<class V> inline V UnaryThreadDataType<V>::call() {
 	return value;
 }
 
-template<class V> inline V BinaryThreadDataType<V>::call() {
-	BinaryOperator<V>* operator_ = (BinaryOperator<V>*) (this->operator_);
+template<class V, class IdType> inline V BinaryThreadDataType<V, IdType>::call() {
+	BinaryOperator<V, IdType>* operator_ = (BinaryOperator<V, IdType>*) (this->operator_);
 
 	V value;
-	Element<V> element1;
-	Element<V> element2;
-	Element<V> out;
+	Element<V, IdType> element1;
+	Element<V, IdType> element2;
+	Element<V, IdType> out;
 
 	while (this->left_offset < this->size) {
 
@@ -459,13 +459,13 @@ template<class V> inline V BinaryThreadDataType<V>::call() {
 	return value;
 }
 
-template<class V> inline V UnaryReducerThreadDataType<V>::call() {
-	UnaryReducer<V>* operator_ = (UnaryReducer<V>*) (this->operator_);
+template<class V, class IdType> inline V UnaryReducerThreadDataType<V, IdType>::call() {
+	UnaryReducer<V, IdType>* operator_ = (UnaryReducer<V, IdType>*) (this->operator_);
 
 	V tmp;
 
-	Element<V> element;
-	Element<V> out;
+	Element<V, IdType> element;
+	Element<V, IdType> out;
 	out.value = &tmp;
 
 	V value;
@@ -483,14 +483,14 @@ template<class V> inline V UnaryReducerThreadDataType<V>::call() {
 	return value;
 }
 
-template<class V> inline V BinaryReducerThreadDataType<V>::call() {
-	BinaryReducer<V>* operator_ = (BinaryReducer<V>*) (this->operator_);
+template<class V, class IdType> inline V BinaryReducerThreadDataType<V, IdType>::call() {
+	BinaryReducer<V, IdType>* operator_ = (BinaryReducer<V, IdType>*) (this->operator_);
 
 	V tmp;
 
-	Element<V> element1;
-	Element<V> element2;
-	Element<V> out;
+	Element<V, IdType> element1;
+	Element<V, IdType> element2;
+	Element<V, IdType> out;
 	out.value = &tmp;
 
 	V value;

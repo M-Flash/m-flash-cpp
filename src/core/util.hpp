@@ -27,6 +27,8 @@ namespace mflash {
 
 
 const int64 DEFAULT_MEMORY_SIZE = 4 * 1073741824L; //4GB
+const int64 DEFAULT_ELEMENT_SIZE = 2 *sizeof(float); //4GB
+
 
 const int MFLASH_MATRIX_THREADS = 1;
 const int MFLASH_VECTOR_THREADS = 1;
@@ -213,27 +215,29 @@ void update_matrix_properties(std::string file_graph, MatrixProperties *properti
 }
 
 
-MatrixProperties* load_matrix_properties(std::string file_graph) {
+MatrixProperties load_matrix_properties(std::string file_graph) {
 
 	std::string filename = get_properties_file(file_graph);
 
-	if(!exist_file(filename))
-		return NULL;
+	if(!exist_file(filename)){
+		LOG(ERROR)<< filename << " not exist!!!";
+		assert(false);
+	}
 
 	std::ifstream file;
 	file.open(filename.c_str());
 
-	MatrixProperties *properties = new MatrixProperties();
+	MatrixProperties properties;//= new MatrixProperties();
 
 	//std::getline(file, line);
-	file >> properties->vertices;
-	file >> properties->idSize;
-	file >> properties->partitions;
-	file >> properties->vertices_partition;
-	properties->edges_by_block = new int64[properties->partitions * properties->partitions];
-	for(int i = 0 ; i<properties->partitions ; i++){
-		for(int j = 0 ; j<properties->partitions ; j++){
-			file>>properties->edges_by_block[i*properties->partitions  + j];
+	file >> properties.vertices;
+	file >> properties.idSize;
+	file >> properties.partitions;
+	file >> properties.vertices_partition;
+	properties.edges_by_block = new int64[properties.partitions * properties.partitions];
+	for(int i = 0 ; i<properties.partitions ; i++){
+		for(int j = 0 ; j<properties.partitions ; j++){
+			file>>properties.edges_by_block[i*properties.partitions  + j];
 		}
 	}
 
@@ -248,7 +252,7 @@ inline int64 getEdgeSize(){
 	#if E != EmptyField
 		size += sizeof(E)
 	#endif
-	return size +  (sizeof(IdType)<<2);
+	return size +  (sizeof(IdType)<<1);
 
 }
 
@@ -266,8 +270,16 @@ inline int64 getVeticesByPartition() {
 	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (2 * sizeof(V));
 }
 
-inline int64 getVeticesByPartition(int64 vertex_size) {
-	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (2 * vertex_size);
+inline int64 validateElementSize(int64 element_size) {
+	if(element_size == 0){
+		return get_config_option_long("elementsize", DEFAULT_ELEMENT_SIZE);
+	}
+	return element_size;
+}
+
+inline int64 getVeticesByPartition(int64 element_size) {
+	element_size = validateElementSize(element_size);
+	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (element_size);
 }
 
 /**

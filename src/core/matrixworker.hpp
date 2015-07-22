@@ -41,10 +41,10 @@ struct VectorPointer {
 	}
 };
 
-template<class VSource, class VDestination, class E, class IdType>
+template<class VSource, class VDestination, class E, class IdType, class MALGORITHM>
 class InitializeOperator;
 
-template<class VSource, class VDestination, class E, class IdType>
+template<class VSource, class VDestination, class E, class IdType, class MALGORITHM>
 class AppyOperator;
 
 template <class E, class IdType, class VSource, class VDestination>
@@ -213,7 +213,7 @@ inline int64 MatrixWorker<E, IdType>::source_size() {
 		size += default_source->element_size();
 	}
 
-	return 0;
+	return size;
 }
 
 
@@ -231,7 +231,7 @@ inline int64 MatrixWorker<E, IdType>::destination_size() {
 		size += default_destination->element_size();
 	}
 
-	return 0;
+	return size;
 }
 
 
@@ -239,9 +239,15 @@ inline int64 MatrixWorker<E, IdType>::destination_size() {
 template<class E, class IdType>
 inline int64 MatrixWorker<E, IdType>::elements_partition() {
 	int64 size = element_size();
-	if (size != 0) {
-		return size / get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE);
+
+	if (matrix->get_elements_by_block() != 0){
+		return matrix->get_elements_by_block();
 	}
+
+	if (size != 0) {
+		return getVeticesByPartition(size);
+	}
+
 	return 0;
 }
 
@@ -256,22 +262,22 @@ void MatrixWorker<E, IdType>::initialize_fields() {
 	VectorPointer *vpointer;
 	map<string, VectorPointer*>::iterator iter;
 
-	int64 elements_partition = this->element_size();
+	int64 vertices_by_partition = matrix->get_elements_by_block();
 	int pos = 0;
 
 	if (default_source != 0) {
-		source_pointer = new Array<VSource>(elements_partition);
+		source_pointer = new Array<VSource, IdType>(vertices_by_partition);
 	}
 
 	if (default_destination != 0) {
-		destination_pointer = new Array<VDestination>(elements_partition);
+		destination_pointer = new Array<VDestination, IdType>(vertices_by_partition);
 	}
 
 	for (iter = source_map.begin(); iter != source_map.end(); iter++, pos++) {
 		vpointer = iter->second;
 		value_pointers[pos] = *(vpointer->pointer);
 		array_pointers[pos] = new GenericArray(vpointer->vector->element_size(),
-				elements_partition);
+				vertices_by_partition);
 		vector_pointers[pos] = vpointer->vector;
 	}
 
@@ -280,7 +286,7 @@ void MatrixWorker<E, IdType>::initialize_fields() {
 		vpointer = iter->second;
 		value_pointers[pos] = *(vpointer->pointer);
 		array_pointers[pos] = new GenericArray(vpointer->vector->element_size(),
-				elements_partition);
+				vertices_by_partition);
 		vector_pointers[pos] = vpointer->vector;
 	}
 
@@ -289,11 +295,11 @@ void MatrixWorker<E, IdType>::initialize_fields() {
 template<class E, class IdType>
 void MatrixWorker<E, IdType>::clean_fields() {
 	if (default_source != 0) {
-		delete[] source_pointer;
+		delete source_pointer;
 	}
 
 	if (default_destination != 0) {
-		delete[] destination_pointer;
+		delete destination_pointer;
 	}
 
 	for (int i = 0; i < field_count; i++) {
@@ -325,11 +331,8 @@ inline void MatrixWorker<E, IdType>::load_fields(FieldType type, int64 offset) {
 		size = source_map.size();
 
 		if (default_source != 0) {
-			Array<VSource> *source_wrapped =
-					dynamic_cast<Array<VSource>*>(source_pointer);
-			source_wrapped->set_limit(
-					default_source->load_region(offset, elements_partition,
-							source_pointer->address()));
+			Array<VSource, IdType> *source_wrapped =dynamic_cast<Array<VSource, IdType>*>(source_pointer);
+			source_wrapped->set_limit(default_source->load_region(offset, elements_partition,source_pointer->address()));
 			source_wrapped->set_offset(offset);
 		}
 	} else {
@@ -337,19 +340,14 @@ inline void MatrixWorker<E, IdType>::load_fields(FieldType type, int64 offset) {
 		size = destination_map.size();
 
 		if (default_destination != 0) {
-			Array<VDestination> *destination_wrapped = dynamic_cast<Array<
-					VDestination>*>(destination_pointer);
-			destination_wrapped->set_limit(
-					default_source->load_region(offset, elements_partition,
-							destination_pointer->address()));
+			Array<VDestination, IdType> *destination_wrapped = dynamic_cast<Array<VDestination, IdType>*>(destination_pointer);
+			destination_wrapped->set_limit(default_source->load_region(offset, elements_partition,destination_pointer->address()));
 			destination_wrapped->set_offset(offset);
 		}
 	}
 
 	for (int i = pos; i < size; i++) {
-		array_pointers[i]->set_limit(
-				vector_pointers[i]->load_region(offset, elements_partition,
-						array_pointers[i]->address()));
+		array_pointers[i]->set_limit(vector_pointers[i]->load_region(offset, elements_partition,array_pointers[i]->address()));
 		array_pointers[i]->set_offset(offset);
 	}
 }
@@ -366,8 +364,8 @@ template<class E, class IdType>
 template<class VSource, class VDestination, class MALGORITHM>
 void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 	const int64 elements = matrix->size();
-	int64 element_size = this->element_size();
-	element_size = element_size == 0 ? matrix->get_elements_by_block() : element_size;
+	int64 vertices_by_partition = matrix->get_elements_by_block();
+//	vertices_by_partition = vertices_by_partition == 0 ? matrix->get_elements_by_block() : vertices_by_partition;
 
 	matrixProperties = matrix->get_matrix_properties();
 
@@ -386,22 +384,22 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 
 	initialize_fields<VSource, VDestination>();
 
-	Array<VDestination> *destination_wrapped = dynamic_cast<Array<VDestination>*>(destination_pointer);
+	Array<VDestination, IdType> *destination_wrapped = dynamic_cast<Array<VDestination, IdType>*>(destination_pointer);
 
-	InitializeOperator<VSource, VDestination, E, IdType> initialize_operator(&algorithm, this);
-	AppyOperator<VSource, VDestination, E, IdType> apply_operator(&algorithm, this);
+	InitializeOperator<VSource, VDestination, E, IdType, MALGORITHM> initialize_operator(&algorithm, this);
+	AppyOperator<VSource, VDestination, E, IdType, MALGORITHM> apply_operator(&algorithm, this);
 
 	LOG (INFO)<< "- EDGE PREPROCESSING STARTED";
 	preprocessing<VSource, VDestination>();
 	LOG (INFO)<< "- EDGE PREPROCESSING FINISHED";
 
-	int block_id = -1;
+	//int block_id = -1;
 	while (iterator.has_next()) {
 		Block block = iterator.next();
-		block_id = block.get_row() * matrixProperties.partitions + block.get_col();
+		//block_id = block.get_row() * matrixProperties.partitions + block.get_col();
 
-		source_offset = block.get_col() * element_size;
-		source_limit = min(source_offset + element_size, elements - source_offset)- 1;
+		source_offset = block.get_col() * vertices_by_partition;
+		source_limit = min(source_offset + vertices_by_partition, elements - source_offset)- 1;
 
 		if (block.get_row() != row) {
 			if (row != -1) {
@@ -414,8 +412,8 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 			}
 			row = block.get_row();
 
-			destination_offset = block.get_row()*element_size;
-			destination_limit = min(destination_offset + element_size, elements-destination_offset) -1;
+			destination_offset = block.get_row()*vertices_by_partition;
+			destination_limit = min(destination_offset + vertices_by_partition, elements-destination_offset) -1;
 
 			LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES";
 			load_fields<VSource, VDestination>(FieldType::DESTINATION, source_offset);
@@ -443,11 +441,14 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 			 }*/
 			Block sparseblock(get_partition_file(matrix->get_file(), block.get_row() , "updates"), block.get_row(), -1, BlockType::SPARSE);
 
-			LOG (INFO)<< "- PROCESSING SPARSE PARTITION "<< block.get_row();
-			EdgeListThread<E, IdType, VSource, VDestination> sparse_thread(*this, 0, sparseblock);
-			sparse_thread.call(algorithm);
-			LOG (INFO)<< "- END PROCESSING SPARSE PARTITION "<< block.get_row();
-
+			if(sparseblock.exist()){
+				LOG (INFO)<< "- PROCESSING SPARSE PARTITION "<< block.get_row();
+				EdgeListThread<E, IdType, VSource, VDestination> sparse_thread(*this, 0, sparseblock);
+				sparse_thread.call(algorithm);
+				LOG (INFO)<< "- END PROCESSING SPARSE PARTITION "<< block.get_row();
+			}else{
+				LOG (INFO)<< "- PROCESSING HAS BEEN OMITTED FOR SPARSE PARTITION "<< block.get_row() << " BECAUSE IT DOES NOT CONTAIN SPARSE BLOCKS";
+			}
 		}
 
 		LOG (INFO)<< "- PROCESSING BLOCK "<< block.get_col() << " -> " << block.get_row();
@@ -457,15 +458,16 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 			continue;
 		}
 
+
 		if(block.isSparse()){
+			LOG (INFO)<< "- BLOCK "<< block.get_col() << " -> " << block.get_row() << " IS SPARSE SO IT WAS PROCESSED BEFORE";
 			continue;
 		}
 
 		if (last_col != block.get_col()) {
 			last_col = block.get_col();
 			LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
-			load_fields<VSource, VDestination>(FieldType::SOURCE,
-					source_offset);
+			load_fields<VSource, VDestination>(FieldType::SOURCE,source_offset);
 			LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << source_limit<< " LOADED";
 		}
 		LOG (INFO)<< "--- PROCESSING EDGES SINCE DENSE BLOCK: " << "----" << block.get_file();
@@ -545,6 +547,45 @@ void MatrixWorker<E, IdType>::preprocessing() {
 	delete splitter;
 }
 
+template<class VSource, class VDestination, class E, class IdType, class MALGORITHM>
+class InitializeOperator: public UnaryOperator<VDestination,IdType> {
+	MALGORITHM *algorithm;
+	MatrixWorker<E, IdType> *worker;
+
+public:
+	InitializeOperator(MALGORITHM *algorithm,
+			MatrixWorker<E, IdType> *worker) {
+		this->algorithm = algorithm;
+		this->worker = worker;
+	}
+
+	void apply(Element<VDestination, IdType> & element, Element<VDestination, IdType>& out) {
+		algorithm->initialize(*worker, out);
+	}
+
+};
+
+template<class VSource, class VDestination, class E, class IdType, class MALGORITHM>
+class AppyOperator: public UnaryOperator<VDestination, IdType> {
+	MALGORITHM *algorithm;
+	MatrixWorker<E, IdType> *worker;
+
+public:
+	AppyOperator(MALGORITHM *algorithm,
+			MatrixWorker<E, IdType> *worker) {
+		this->algorithm = algorithm;
+		this->worker = worker;
+	}
+
+	void apply(Element<VDestination, IdType> & element, Element<VDestination, IdType>& out) {
+		algorithm->apply(*(this->worker), out);
+	}
+
+};
+
+
+/*
+
 template<class VSource, class VDestination, class E, class IdType>
 class InitializeOperator: public UnaryOperator<VDestination> {
 	MAlgorithm<VSource, VDestination, E, IdType> *algorithm;
@@ -557,7 +598,7 @@ public:
 		this->worker = worker;
 	}
 
-	void apply(Element<VDestination> & element, Element<VDestination>& out) {
+	void apply(Element<VDestination, IdType> & element, Element<VDestination>& out) {
 		algorithm->initialize(*worker, out);
 	}
 
@@ -580,6 +621,7 @@ public:
 	}
 
 };
+*/
 
 }
 

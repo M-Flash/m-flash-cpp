@@ -41,18 +41,18 @@ namespace mflash{
 	 *
 	 * @author Hugo Gualdron
 	 *
-	 * @param <V>
+	 * @param <V, IdType>
 	 */
-	template <class V>
-	class LinearOperator : public OperationListener, public BinaryOperator<V>{
+	template <class V, class IdType>
+	class LinearOperator : public OperationListener, public BinaryOperator<V, IdType>{
 
 			V * constants;
-			BinaryOperator<V> *soperator;
-			BinaryOperator<V> *moperator;
+			BinaryOperator<V, IdType> *soperator;
+			BinaryOperator<V, IdType> *moperator;
 
 			int currentVectorId;
-			Element<V> currentConstant;
-			Element<V> lastConstant;
+			Element<V, IdType> currentConstant;
+			Element<V, IdType> lastConstant;
 
 			/**
 			 * Attribute used to determined when apply the two constants.
@@ -60,7 +60,7 @@ namespace mflash{
 			bool combined;
 
 		public:
-		LinearOperator(V constants[], BinaryOperator<V> *soperator, BinaryOperator<V> *moperator) {
+		LinearOperator(V constants[], BinaryOperator<V, IdType> *soperator, BinaryOperator<V, IdType> *moperator) {
 			this->constants = constants;
 			this->soperator = soperator;
 			this->moperator = moperator;
@@ -84,7 +84,7 @@ namespace mflash{
 
 		}
 
-		void apply(Element<V> &left, Element<V> &right, Element<V> &out) {
+		void apply(Element<V, IdType> &left, Element<V, IdType> &right, Element<V, IdType> &out) {
 			if(combined){
 				moperator->apply(lastConstant, left ,left);
 			}

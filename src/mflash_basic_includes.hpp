@@ -12,6 +12,7 @@
 
 #include "util/easylogging++.h"
 #include "core/type.hpp"
+#include "util/configfile.hpp"
 #include "util/cmdopts.hpp"
 #include "core/util.hpp"
 #include "core/conversions.hpp"
