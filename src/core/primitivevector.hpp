@@ -122,7 +122,7 @@ namespace mflash{
 		bool transpose_;
 
 		public:
-			PrimitiveVector(string file, int64 size, int64 elements_by_block = 0, bool transpose = false) :
+			PrimitiveVector(string file, int64 size = 0, int64 elements_by_block = 0, bool transpose = false) :
 				Vector<V>::Vector(file, size, elements_by_block){
 				this->transpose_ = transpose;
 			}

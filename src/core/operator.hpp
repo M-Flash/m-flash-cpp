@@ -8,14 +8,13 @@
 #ifndef MFLASH_CPP_CORE_OPERATOR_HPP_
 #define MFLASH_CPP_CORE_OPERATOR_HPP_
 
-#include <iostream>
-
-#include "../core/type.hpp"
+#include "type.hpp"
 
 namespace mflash {
 
 template<class V>
 class Operator {
+public:
 	virtual void dummy() {}
 	virtual ~Operator(){}
 };
@@ -38,7 +37,7 @@ template<class V>
 class UnaryOperator: public Operator<V> {
 public:
 	virtual void apply(Element<V> & element, Element<V>& out) = 0;
-	virtual ~UnaryOperator();
+	virtual ~UnaryOperator(){};
 };
 
 template<class V1, class V2 = V1, class VOut = V1>

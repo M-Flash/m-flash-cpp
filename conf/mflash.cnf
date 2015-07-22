@@ -4,7 +4,7 @@
 # execthreads=2
 # configuration for 4GB
 memorysize = 4294967296
-filetype = adjlist
+#filetype = adjlist
 edgeseparator = 	
 
 loadthreads = 4

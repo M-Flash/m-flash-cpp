@@ -81,7 +81,6 @@ namespace mflash{
 
 				std::vector<BlockType> block_types(partitions);
 				//checking block density
-				double ratio;
 				//int64 edge_size = 2 * sizeof(IdType) + edge_data_size;
 				for (int64 j = 0; j < partitions; j++){
 					//ratio = ((double)1)/partitions + ( ((double)2) * counters[i * partitions + j] * edge_size / vertices_by_partition);

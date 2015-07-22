@@ -8,239 +8,220 @@
 #ifndef MFLASH_CPP_CORE_EDGELISTTHREAD_HPP_
 #define MFLASH_CPP_CORE_EDGELISTTHREAD_HPP_
 
-#include "streamprocessor.hpp"
+#include "array.hpp"
+#include "blockiterator.hpp"
+#include "mapped_stream.hpp"
+#include "matrixworker.hpp"
+#include "type.hpp"
+
 
 namespace mflash{
 
-	template <class V, class E>
-	class EdgeListThread : public StreamProcessor<V,E>{
-		public:
-			EdgeListThread(string file, BlockProperties &properties, MatrixWorker<V,E> &worker, int id, bool opposite_direction) : StreamProcessor<V,E>(file, properties,worker, id, opposite_direction){}
 
-			template< class MALGORITHM>
-			void call(MALGORITHM &algorithm);
 
-			template< class MALGORITHM>
+	/*
+	 * WITHOUT MULTITHREAD SUPPORT AND AUXILIAR FIELDS FOR SOURCE AND DESTINATION
+	 */
+	template <class E, class IdType, class VSource, class VDestination>
+	class EdgeListThread {
+		private:
+
+			MatrixWorker<E, IdType> *worker;
+			int thread_id;
+			Block *block;
+			MappedStream *stream;
+
+			template <class MALGORITHM>
 			void dense_transpose(MALGORITHM &algorithm, int64 step);
 
-			template< class MALGORITHM>
+			template <class MALGORITHM>
 			void dense_normal(MALGORITHM &algorithm, int64 step);
 
-			template< class MALGORITHM>
-			void sparse_transpose(MALGORITHM &algorithm, int64 step, int64 vertex_value_size);
+			template <class MALGORITHM>
+			void sparse_transpose(MALGORITHM &algorithm, int64 step);
 
-			template< class MALGORITHM>
-			void sparse_normal(MALGORITHM &algorithm, int64 step, int64 vertex_value_size);
+			template <class MALGORITHM>
+			void sparse_normal(MALGORITHM &algorithm, int64 step);
+
+		public:
+			EdgeListThread(MatrixWorker<E, IdType> &worker, int thread_id, Block &block);
+
+			template <class MALGORITHM>
+			void call(MALGORITHM &algorithm);
+
 	};
 
-	template <class V, class E>
+	template <class E, class IdType, class VSource, class VDestination>
+	EdgeListThread<E, IdType, VSource, VDestination>::EdgeListThread(MatrixWorker<E, IdType> &worker, int thread_id, Block &block){
+		this->worker = &worker;
+		this->thread_id = thread_id;
+		this->block = &block;
+		this->stream = 0;
+	}
+
+	template <class E, class IdType, class VSource, class VDestination>
 	template <class MALGORITHM>
-	void EdgeListThread<V,E>::call(MALGORITHM &algorithm){
-			const ElementIdSize id_size = this->worker->get_matrix().get_element_id_size();
-			int64 vertex_value_size = (BlockType::SPARSE== this->properties->type? sizeof(V): 0);
-			const int bytes = 2 *(id_size == ElementIdSize::SIMPLE? sizeof(int): sizeof(int64))  + vertex_value_size;
-			const int step = (MFLASH_MATRIX_THREADS -1)* bytes;
-			//if(!this->opposite_direction){
-        if(ElementIdSize::SIMPLE == id_size){
-            if(BlockType::DENSE == this->properties->type){
-              //check the offset for multithread in sparse blocks
-              this->stream->set_position (this->properties->offset + bytes * this->id);
-              if(this->worker->matrix->is_transpose()){
-                  dense_transpose(algorithm, step);
-              }else{
-                  dense_normal(algorithm, step);
-              }
-            }else if(BlockType::SPARSE == this->properties->type){
-              if(this->worker->matrix->is_transpose()){
-                  sparse_transpose(algorithm, step, vertex_value_size);
-              }else{
-                  sparse_normal(algorithm, step, vertex_value_size);
-              }
-            }
-        }
-			//}
-			this->stream->close_stream();
+	void EdgeListThread<E, IdType, VSource, VDestination>::call(MALGORITHM &algorithm){
+
+		stream = new MappedStream(block->get_file());
+
+/*
+		const ElementIdType id_size = this->worker->get_matrix().get_element_id_size();
+		int64 vertex_value_size = (BlockType::SPARSE== this->properties->type? sizeof(V): 0);
+		const int bytes = 2 *(id_size == ElementIdType::SIMPLE? sizeof(int): sizeof(int64))  + vertex_value_size;
+		const int step = (MFLASH_MATRIX_THREADS -1)* bytes;
+*/
+		int step = 0;
+		if(block->isDense()){
+		  //this->stream->set_position (this->properties->offset + bytes * this->id);
+		  if(this->worker->matrix->is_transpose()){
+			  dense_transpose(algorithm, step);
+		  }else{
+			  dense_normal(algorithm, step);
+		  }
+		}else{
+		  if(this->worker->matrix->is_transpose()){
+			  sparse_transpose(algorithm, step);
+		  }else{
+			  sparse_normal(algorithm, step);
+		  }
 		}
 
-
-	template <class V, class E>
-  template <class MALGORITHM>
-  void EdgeListThread<V,E>::dense_transpose(MALGORITHM &algorithm, int64 step){
-	  E edge_data;
-	  MappedStream *stream = this->stream;
-	  MatrixWorker<V,E> *worker= this->worker;
-	  int64 in_vertex_id;
-    int64 out_vertex_id;
-    Array<V> *in = this->worker->get_in_array();
-    Array<V> *out = this->worker->get_out_array();
-    Element<V> in_vertex;
-    Element<V> out_vertex_accumulator;
-    int64 next;
-    char * ptr;
-    char * last_ptr;
-
-    if(!this->opposite_direction){
-        next = 8;
-        ptr =  stream->current_ptr;
-        last_ptr = stream->last_ptr;
-        while(ptr < last_ptr){
-         out_vertex_accumulator.id = out_vertex_id = *( (int*)ptr);
-         in_vertex.id = in_vertex_id = *( (int*)(ptr+4));
-         /*if(this->worker->load_vertex_data)*/ in_vertex.value = in->get_element(in_vertex_id);
-         /*if(this->worker->load_dest_data) */out_vertex_accumulator.value = out->get_element(out_vertex_id);
-         algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-         ptr+=next;
-       }
-    }else{
-        /*next = -8;
-        ptr =  stream->last_ptr + next;
-        last_ptr = stream->current_ptr;
-        while(ptr > last_ptr){
-         out_vertex_accumulator.id = out_vertex_id = *( (int*)ptr);
-         in_vertex.id = in_vertex_id = *( (int*)ptr+4);
-         if(this->worker->load_vertex_data) in_vertex.value = in->get_element(in_vertex_id);
-         if(this->worker->load_dest_data) out_vertex_accumulator.value = out->get_element(out_vertex_id);
-         algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-         ptr+=next;
-       }*/
-        next = 8;
-        int64 shunk_size = 1073741824 ;
-        int64 shunks = ((int64)stream->size/shunk_size)+ (stream->size%shunk_size ==0? 0: 1);
-        for(int i = shunks-1; i>=0; i-- /*int i = shunks-1; i>=0; i--*/){
-            ptr =  stream->current_ptr + (shunk_size * i);
-            last_ptr = min(ptr+shunk_size, stream->last_ptr);
-            while(ptr < last_ptr){
-                out_vertex_accumulator.id = out_vertex_id = *( (int*)ptr);
-                in_vertex.id = in_vertex_id = *( (int*)(ptr+4));
-
-               /*if(this->worker->load_vertex_data)*/ in_vertex.value = in->get_element(in_vertex_id);
-               /*if(this->worker->load_dest_data) */out_vertex_accumulator.value = out->get_element(out_vertex_id);
-               algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-               ptr+=next;
-            }
-        }
-    }
-
-
+		this->stream->close_stream();
+		delete stream;
 	}
 
-	template <class V, class E>
-  template <class MALGORITHM>
-  void EdgeListThread<V,E>::dense_normal(MALGORITHM &algorithm, int64 step){
-	  E edge_data;
-	  MatrixWorker<V,E> *worker= this->worker;
-    MappedStream *stream = this->stream;
-    int64 in_vertex_id;
-    int64 out_vertex_id;
-    Array<V> *in = this->worker->get_in_array();
-    Array<V> *out = this->worker->get_out_array();
-    Element<V> in_vertex;
-    Element<V> out_vertex_accumulator;
+	template <class E, class IdType, class VSource, class VDestination>
+template <class MALGORITHM>
+void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITHM &algorithm, int64 step) {
+	E edge_data;
 
-    int64 next;
-    char * ptr;
-    char * last_ptr;
+	IdType in_vertex_id;
+	IdType out_vertex_id;
 
-    if(!this->opposite_direction){
-        next = 8;
-        ptr =  stream->current_ptr;
-        last_ptr = stream->last_ptr;
-        while(ptr < last_ptr){
-          in_vertex.id = in_vertex_id = *( (int*)ptr);
-          out_vertex_accumulator.id = out_vertex_id = *( (int*)(ptr+4));
-          /*if(this->worker->load_vertex_data)*/ in_vertex.value = in->get_element(in_vertex_id);
-          /*if(this->worker->load_dest_data) */out_vertex_accumulator.value = out->get_element(out_vertex_id);
-          algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-          ptr+=next;
-        }
-    }else{
-        next = 8;
-        int64 shunk_size = 1073741824 ;
-        int64 shunks = ((int64)stream->size/shunk_size)+ (stream->size%shunk_size ==0? 0: 1);
-        for(int i = shunks-1; i>=0; i-- /*int i = shunks-1; i>=0; i--*/){
-            ptr =  stream->current_ptr + (shunk_size * i);
-            last_ptr = min(ptr+shunk_size, stream->last_ptr);
-            while(ptr < last_ptr){
-               in_vertex.id = in_vertex_id = *( (int*)ptr);
-               out_vertex_accumulator.id = out_vertex_id = *( (int*)(ptr+4));
-               /*if(this->worker->load_vertex_data)*/ in_vertex.value = in->get_element(in_vertex_id);
-               /*if(this->worker->load_dest_data) */out_vertex_accumulator.value = out->get_element(out_vertex_id);
-               algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-               ptr+=next;
-            }
-        }
-    }
+	GenericArray *in = this->worker->source_pointer;
+	GenericArray *out = this->worker->destination_pointer;
+
+	Element<VSource, IdType> in_vertex;
+	Element<VDestination, IdType> out_vertex_accumulator;
+
+	int64 next = getEdgeSize<E, IdType>();
+
+	char * ptr;
+	char * last_ptr;
+
+	ptr = stream->current_ptr;
+	last_ptr = stream->last_ptr;
+	while (ptr < last_ptr) {
+		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
+		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
+		/*if(this->worker->load_vertex_data)*/
+		in_vertex.value = (VSource*)in->get_element(in_vertex_id);
+		/*if(this->worker->load_dest_data) */
+		out_vertex_accumulator.value = (VDestination*) out->get_element(out_vertex_id);
+		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,
+				edge_data);
+		ptr += next;
 	}
+}
+template <class E, class IdType, class VSource, class VDestination>
+template <class MALGORITHM>
+void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &algorithm, int64 step){
+	E edge_data;
 
-	template <class V, class E>
-  template <class MALGORITHM>
-  void EdgeListThread<V,E>::sparse_transpose(MALGORITHM &algorithm, int64 step, int64 vertex_value_size){
-	  E edge_data;
-    MappedStream *stream = this->stream;
-    MatrixWorker<V,E> *worker= this->worker;
-    int64 in_vertex_id;
-    int64 out_vertex_id;
-    Array<V> *out = this->worker->get_out_array();
-    Element<V> in_vertex;
-    Element<V> out_vertex_accumulator;
+	MappedStream *stream = this->stream;
 
+	IdType in_vertex_id;
+	IdType out_vertex_id;
 
-    char * ptr;
-    char * last_ptr;
-    int64 next = 2 * sizeof(int) + vertex_value_size;
+	GenericArray *in = this->worker->source_pointer;
+	GenericArray *out = this->worker->destination_pointer;
 
-    ptr =  stream->current_ptr;
-    last_ptr = stream->last_ptr;
-    while(ptr < last_ptr){
-        out_vertex_accumulator.id = out_vertex_id = *( (int*)ptr);
-        in_vertex.id = in_vertex_id = *( (int*)(ptr+4));
-        in_vertex.value = (V*)(ptr+8);
-        out_vertex_accumulator.value = out->get_element(out_vertex_id);
-        algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-        ptr+=next;
-    }
-    /*while(stream->has_remain()){
-      in_vertex_id = stream->next_int();
-      out_vertex_id = stream->next_int();
-      this->worker->in_vertex.value = (V*) this->stream->next(vertex_value_size,step);
-      this->worker->next_edge(out_vertex_id, in_vertex_id, edge_data);
-    }*/
-  }
+	Element<VSource, IdType> in_vertex;
+	Element<VDestination, IdType> out_vertex_accumulator;
 
-	template <class V, class E>
-  template <class MALGORITHM>
-  void EdgeListThread<V,E>::sparse_normal(MALGORITHM &algorithm, int64 step, int64 vertex_value_size){
-	  E edge_data;
-    MappedStream *stream = this->stream;
-    MatrixWorker<V,E> *worker= this->worker;
-    int64 in_vertex_id;
-    int64 out_vertex_id;
-    Array<V> *out = this->worker->get_out_array();
-    Element<V> in_vertex;
-    Element<V> out_vertex_accumulator;
-    char * ptr;
-    char * last_ptr;
-    int64 next = 2 * sizeof(int) + vertex_value_size;
+	int64 next = getEdgeSize<E, IdType>();
 
-    ptr =  stream->current_ptr;
-    last_ptr = stream->last_ptr;
-    while(ptr < last_ptr){
-        in_vertex.id = in_vertex_id = *( (int*)(ptr));
-        out_vertex_accumulator.id = out_vertex_id = *( (int*)(ptr+4));
-        in_vertex.value = (V*)(ptr+8);
-        out_vertex_accumulator.value = out->get_element(out_vertex_id);
-        algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
-        ptr+=next;
-    }
+	char * ptr;
+	char * last_ptr;
 
-    /*while(this->stream->has_remain()){
-      out_vertex_id = stream->next_int();
-      in_vertex_id = stream->next_int();
-      this->worker->in_vertex.value = (V*) stream->next(vertex_value_size,step);
-      this->worker->next_edge(out_vertex_id, in_vertex_id, edge_data);
-    }*/
+	ptr = stream->current_ptr;
+	last_ptr = stream->last_ptr;
+	while (ptr < last_ptr) {
+		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
+		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
+		/*if(this->worker->load_vertex_data)*/
+		in_vertex.value = (VSource*)in->get_element(in_vertex_id);
+		/*if(this->worker->load_dest_data) */
+		out_vertex_accumulator.value = (VDestination*)out->get_element(out_vertex_id);
+		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,
+				edge_data);
+		ptr += next;
+	}
 }
 
+template <class E, class IdType, class VSource, class VDestination>
+template <class MALGORITHM>
+void EdgeListThread<E, IdType, VSource, VDestination>::sparse_transpose(MALGORITHM &algorithm, int64 step){
+	E edge_data;
+
+	IdType in_vertex_id;
+	IdType out_vertex_id;
+
+	GenericArray *in = this->worker->source_pointer;
+	GenericArray *out = this->worker->destination_pointer;
+
+	Element<VSource, IdType> in_vertex;
+	Element<VDestination, IdType> out_vertex_accumulator;
+
+	int64 next = getEdgeSize<E, IdType>() + worker->source_size();
+
+	char * ptr;
+	char * last_ptr;
+
+	ptr = stream->current_ptr;
+	last_ptr = stream->last_ptr;
+	while (ptr < last_ptr) {
+		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
+		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
+		in_vertex.value = (VSource*) (ptr + (sizeof(IdType) <<1));
+		out_vertex_accumulator.value = (VDestination*) out->get_element(out_vertex_id);
+		algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
+		ptr += next;
+	}
+}
+
+template <class E, class IdType, class VSource, class VDestination>
+template <class MALGORITHM>
+void EdgeListThread<E, IdType, VSource, VDestination>::sparse_normal(MALGORITHM &algorithm, int64 step){
+	E edge_data;
+
+	IdType in_vertex_id;
+	IdType out_vertex_id;
+
+	GenericArray *in = this->worker->source_pointer;
+	GenericArray *out = this->worker->destination_pointer;
+
+	Element<VSource, IdType> in_vertex;
+	Element<VDestination, IdType> out_vertex_accumulator;
+
+	int64 next = getEdgeSize<E, IdType>() + worker->source_size();
+
+	char * ptr;
+	char * last_ptr;
+
+	ptr = stream->current_ptr;
+	last_ptr = stream->last_ptr;
+	while (ptr < last_ptr) {
+		in_vertex.id = in_vertex_id = *((IdType*) ptr);
+		out_vertex_accumulator.id = out_vertex_id = *((IdType*)(ptr + sizeof(IdType)));
+		in_vertex.value = (VSource*) (ptr + (sizeof(IdType) <<1));
+		out_vertex_accumulator.value = (VDestination*)out->get_element(out_vertex_id);
+		algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
+		ptr += next;
+	}
+
+}
 
 }
 

@@ -12,10 +12,10 @@ typedef long long int64;
 
 namespace mflash {
 
-template<class V>
+template<class V, class IdType = int>
 class Element {
 public:
-	int64 id;
+	IdType id;
 	V* value;
 
 	void set_value(V value) {
@@ -74,7 +74,6 @@ struct MatrixProperties{
 		if(row >= 0 && row <partitions && col >= 0 && col <partitions){
 			return edges_by_block[row * partitions + col];
 		}
-		assert(false);
 		return 0;
 	}
 };

@@ -1,3 +1,4 @@
+
 /*
  * matrix.hpp
  *
@@ -17,150 +18,222 @@
 #include "../core/type.hpp"
 #include "../core/util.hpp"
 #include "../core/vector.hpp"
-#include "../core2/blockiterator.hpp"
-#include "../core2/direct_stream.hpp"
-#include "../core2/mmappointer.hpp"
-#include "../log/easylogging++.h"
+#include "../core/blockiterator.hpp"
+#include "../../log/easylogging++.h"
 
-namespace mflash{
+namespace mflash {
 
-  template <class E>
-  class MatrixWorker;
+template<class VSource, class VDestination, class E, class IdType>
+class MAlgorithm;
 
-  template <class VSource, class VDestination, class E>
-  class MAlgorithm;
+template<class E, class IdType>
+class MatrixWorker;
 
-  template <class E>
-	class Matrix{
+/*
 
-		string file;
-		int64 n;
-		int64 m;
-		bool transpose_;
+class MatrixInterface {
+	virtual int64 size();
+	virtual string get_file();
+	virtual bool is_transpose();
+	virtual int id_size();
+	virtual int64 get_elements_by_block();
+	virtual int size_edge();
+	virtual int size_edge_data();
+	virtual ~MatrixInterface();
 
-		int64 elements_by_block_;
+};*/
 
-		Mode mode;
-		ElementIdSize element_id_size;
-		MatrixWorker<E> *worker;
+template<class E, class IdType = int>
+class Matrix { //: MatrixInterface{
 
-		//mode depends of the behaviour with one thread
+	string file;
+	//int64 n;
+	//int64 m;
+	bool transpose_;
 
-	//	template<class V>
-	//	BlockProperties** block_preprocessing(int block_count, Vector<V> &inVector, Vector<V> &outVector);
+	Mode mode;
+	MatrixWorker<E, IdType> *worker;
 
-		BlockType get_block_type(int block_count, int64 vertex_size_bytes, int64 edge_size_bytes);
+	MatrixProperties *properties;
 
-    template<class VSource, class VDestination>
-    inline void operate(MAlgorithm<VSource,VDestination, E> &algorithm, Vector<VSource> *inVector, Vector<VDestination> *outVector);
+	//BlockType get_block_type(int block_count, int64 vertex_size_bytes,int64 edge_size_bytes);
 
-		public:
-			Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode);
-			//Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode);
-			int64 size(){return max(n,m);}
-			Matrix<E> transpose();
-			string get_file(){return file;}
-			bool is_transpose(){return transpose_;}
-			ElementIdSize get_element_id_size(){return element_id_size;}
-			int64 get_elements_by_block(){return elements_by_block_;}
+	template<class VSource, class VDestination, class MALGORITHM>
+	inline void operate(MALGORITHM &algorithm,
+			Vector<VSource> *inVector, Vector<VDestination> *outVector);
 
-			int64 size_edge();
-			int64 size_edge_data();
+public:
+	Matrix(string file, bool transpose = false, Mode mode = Mode::VECTOR_REPLICATION/*, int64 size, int64 element_by_block*/);
+	//Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode);
+	int64 size() {
+		return properties != NULL? properties->vertices : 0;//max(n, m);
+	}
+	Matrix<E, IdType> transpose();
 
-			bool add_field(FieldType type, string fieldname, AbstractVector &vector){return worker->add_field(type, fieldname, vector);}
-			//bool add_field(FieldType type, string fieldname, AbstractVector *vector){return worker->add_field(type, fieldname, *vector);}
-
-			bool remove_field(FieldType type, string fieldname){return worker->remove_field(type, fieldname);};
-
-
-	    template<class VSource, class VDestination>
-			void operate(MAlgorithm<VSource, VDestination,E> &algorithm, Vector<VSource> &inVector, Vector<VDestination> &outVector);
-
-	    template<class VDestination>
-	    void operate(MAlgorithm<EmptyField,VDestination, E> &algorithm, Vector<VDestination> &outVector);
-
-	    void operate(MAlgorithm<EmptyField,EmptyField, E> &algorithm);
-
-
-	};
-
-	template<class E>
-	Matrix<E>::Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode){
-		this->file = file;
-		this->n = size;
-		this->m = size;
-		this->transpose_ = !transpose;
-		this->mode = mode;
-		this->elements_by_block_ = element_by_block;
-		this->element_id_size = ElementIdSize::SIMPLE;
-		this->worker = new MatrixWorker<E>(*this);
+	string get_file() {
+		return file;
+	}
+	bool is_transpose() {
+		return transpose_;
+	}
+	int id_size() {
+		return sizeof(IdType);
 	}
 
-	template<class E>
-	Matrix<E> Matrix<E>::transpose(){
-		Matrix<E> t(this);
-		t.transpose_ = !t.transpose;
-		return (t);
+	MatrixProperties get_matrix_properties() {
+		MatrixProperties properties;
+		properties = *this->properties;
+		return properties;
 	}
 
-  template<class E>
-  int64 Matrix<E>::size_edge_data(){
-    int64 size = 0;
-     #if E != EmptyType
-      size = sizeof(E);
-     #endif
-    return size;
-  }
-
-  template<class E>
-  int64 Matrix<E>::size_edge(){
-    int64 size = 0;
-
-    if(ElementIdSize::SIMPLE){
-        size += 2*sizeof(int);
-    }else{
-        size += 2*sizeof(int64);
-    }
-
-    //We are considering always the format (source_id, destination_id, edge_data)
-
-    return size;
-  }
-	//first implementation without replicates :)
-
-
-  template<class E>
-    template<class VSource, class VDestination>
-    inline void Matrix<E>::operate(MAlgorithm<VSource,VDestination, E> &algorithm, Vector<VSource> *inVector, Vector<VDestination> *outVector){
-
-      worker->set_default_destination_field(0);
-      worker->set_default_source_field(0);
-
-      worker->set_default_source_field(inVector);
-      worker->set_default_destination_field(outVector);
-
-      worker->operate<VSource, VDestination>(algorithm);
-
-      worker->set_default_destination_field(0);
-      worker->set_default_source_field(0);
-    }
-
-	template<class E>
-	template<class VSource, class VDestination>
-	inline void Matrix<E>::operate(MAlgorithm<VSource,VDestination, E> &algorithm, Vector<VSource> &inVector, Vector<VDestination> &outVector){
-	  operate<VSource, VDestination>(algorithm, &inVector, &outVector);
+	void set_matrix_properties(MatrixProperties &newProperties){
+		this->properties = newProperties;
 	}
 
-	template<class E>
-  template<class VDestination>
-  inline void Matrix<E>::operate(MAlgorithm<EmptyField,VDestination, E> &algorithm, Vector<VDestination> &outVector){
-	  operate<EmptyField, VDestination>(algorithm, 0, &outVector);
-  }
 
-	template<class E>
-  inline void Matrix<E>::operate(MAlgorithm<EmptyField,EmptyField, E> &algorithm){
-    operate<EmptyField, EmptyField>(algorithm, 0, 0);
-  }
+	int64 get_elements_by_block() {
+		if(properties != NULL){
+			return properties->vertices_partition;
+		}
+		return 0;
+	}
+
+	int size_edge();
+	int size_edge_data();
+
+	bool add_field(FieldType type, string fieldname, AbstractVector &vector) {
+		return worker->add_field(type, fieldname, vector);
+	}
+	//bool add_field(FieldType type, string fieldname, AbstractVector *vector){return worker->add_field(type, fieldname, *vector);}
+
+	bool remove_field(FieldType type, string fieldname) {
+		return worker->remove_field(type, fieldname);
+	}
+
+	template<class VSource, class VDestination, class MALGORITHM>
+	void operate(MALGORITHM &algorithm, Vector<VSource> &inVector, Vector<VDestination> &outVector);
+
+	template<class VSource, class VDestination, class MALGORITHM>
+	void operate(MALGORITHM &algorithm, Vector<VDestination> &outVector);
+
+	template<class VSource, class VDestination, class MALGORITHM>
+	void operate(MALGORITHM &algorithm, PrimitiveVector<VDestination> &outVector);
+
+
+	template<class VSource, class VDestination, class MALGORITHM>
+	void operate(MALGORITHM &algorithm);
+
+	void load();
+
+};
+
+//Matrix<E>::Matrix(string filebool transpose, int64 size, int64 element_by_block, Mode mode){
+template<class E, class IdType>
+Matrix<E, IdType>::Matrix(string graph, bool transpose, Mode mode) {
+	this->file = file;
+	this->transpose_ = !transpose;
+	this->mode = mode;
+	this->properties = NULL;
+	this->worker = new MatrixWorker<E, IdType>(*this);
+	//this->n = 0;
+	//this->m = 0;
+
+}
+
+template<class E, class IdType>
+Matrix<E, IdType> Matrix<E, IdType>::transpose() {
+	Matrix <E,IdType > t(*this);
+	t.transpose_ = !t.transpose_;
+	return (t);
+}
+
+template<class E, class IdType>
+int Matrix<E, IdType>::size_edge_data() {
+	int64 size = 0;
+#if E != EmptyType
+	size = sizeof(E);
+#endif
+	return size;
+}
+
+template<class E, class IdType>
+int Matrix<E, IdType>::size_edge() {
+	//We are considering always the format (source_id, destination_id, edge_data)
+	int64 size = 0;
+	size += 2 * sizeof(IdType);
+	return size;
+}
+
+//first implementation without replicates :)
+
+template<class E, class IdType>
+template<class VSource, class VDestination, class MALGORITHM>
+void Matrix<E, IdType>::operate(MALGORITHM &algorithm,
+		Vector<VSource> *inVector, Vector<VDestination> *outVector) {
+
+	worker->set_default_destination_field(0);
+	worker->set_default_source_field(0);
+
+	worker->set_default_source_field(inVector);
+	worker->set_default_destination_field(outVector);
+
+	load();
+
+	//resizing vectors
+	if(outVector != 0){
+		outVector->resize(size());
+	}
+	if(inVector != 0){
+		inVector->resize(size());
+	}
+
+	worker->operate<VSource, VDestination>(algorithm);
+
+	worker->set_default_destination_field(0);
+	worker->set_default_source_field(0);
+}
+
+template<class E, class IdType>
+template<class VSource, class VDestination, class MALGORITHM>
+void Matrix<E, IdType>::operate(MALGORITHM &algorithm,
+		Vector<VSource> &inVector, Vector<VDestination> &outVector) {
+	operate<VSource, VDestination>(algorithm, &inVector, &outVector);
+}
+
+template<class E, class IdType>
+template<class VSource, class VDestination, class MALGORITHM>
+void Matrix<E, IdType>::operate(
+		MALGORITHM &algorithm,
+		Vector<VDestination> &outVector) {
+	operate<EmptyField, VDestination>(algorithm, 0, &outVector);
+}
+
+template<class E, class IdType>
+template<class VSource, class VDestination, class MALGORITHM>
+void Matrix<E, IdType>::operate(
+		MALGORITHM &algorithm,
+		PrimitiveVector<VDestination> &outVector) {
+	operate<EmptyField, VDestination>(algorithm, 0, &outVector);
+}
+
+
+template<class E, class IdType>
+template<class VSource, class VDestination, class MALGORITHM>
+void Matrix<E, IdType>::operate(MALGORITHM &algorithm) {
+	operate<EmptyField, EmptyField>(algorithm, 0, 0);
+}
+
+template<class E, class IdType>
+void Matrix<E, IdType>::load(){
+	int64 element_size = worker->element_size();
+	if(properties != NULL && properties->vertices_partition == getVeticesByPartition(element_size)){
+		LOG(INFO) << "Graph formatting ommitted because current partitioning is compatible.";
+	}else{
+		properties = new MatrixProperties();
+		*properties = convert<E,IdType>(file, element_size);
+	}
+	convert<E, IdType>(file, worker->element_size());
+}
 
 }
 #endif /* MFLASH_CPP_CORE_MATRIX_HPP_ */

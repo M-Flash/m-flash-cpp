@@ -110,6 +110,21 @@ string get_partition_file(string graph, int64 partition_id, string prefix = "") 
 	file<< partition_id << ".partition";
 	return file.str();
 }
+string get_in_degree_file(string graph) {
+	std::stringstream file;
+	file << get_graph_directory(graph);
+	file<< get_filename(graph) << ".in_degree";
+	return file.str();
+}
+
+string get_out_degree_file(string graph) {
+	std::stringstream file;
+	file << get_graph_directory(graph);
+	file<< get_filename(graph) << ".out_degree";
+	return file.str();
+}
+
+
 
 void delete_file(std::string file){
 	boost::filesystem::remove(file);

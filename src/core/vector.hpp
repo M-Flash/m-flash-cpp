@@ -18,8 +18,8 @@
 #include "../core/operator.hpp"
 #include "../core/type.hpp"
 #include "../core/util.hpp"
-#include "../core2/linearcombination.hpp"
-#include "../log/easylogging++.h"
+#include "../core/linearcombination.hpp"
+#include "../../log/easylogging++.h"
 
 
 using namespace std;
@@ -32,6 +32,8 @@ public:
 	virtual string get_file() = 0;
 	virtual int64 load_region(int64 offset, int64 size, void* address) = 0;
 	virtual void store_region(int64 offset, int64 size, void* address) = 0;
+	virtual void resize(int64 size) = 0;
+
 	virtual ~AbstractVector(){}
 };
 
@@ -52,13 +54,15 @@ protected:
 	virtual ~Vector(){}
 
 public:
-	Vector(string file, int64 size, int64 elements_by_block);
+	Vector(string file, int64 size = 0, int64 elements_by_block = 0);
 
 	int64 element_size() {return sizeof(V);}
 
 	//int64 get_size(){ return size;}
 
 	string get_file() {return file;}
+
+	void resize(int64 size);
 
 	int64 load_region(int64 offset, int64 size, void* address);
 
@@ -85,7 +89,7 @@ public:
 };
 
 template<class V>
-Vector<V>::Vector(string file, int64 size, int64 elements_by_block = 0) {
+Vector<V>::Vector(string file, int64 size, int64 elements_by_block) {
 	this->file = file;
 	this->size = size;
 	this->readonly = false;
@@ -233,6 +237,13 @@ V Vector<V>::operate(UnaryReducer<V> &operator_) {
 template<class V>
 V Vector<V>::operate(BinaryReducer<V> &operator_, Vector<V> &vector2) {
 	operate(operator_, *this, new Vector<V> *[2] { *this, &vector2 });
+}
+
+template<class V>
+inline void Vector<V>::resize(int64 size) {
+	if(this->size <0)
+		return;
+	this->size = size;
 }
 
 template<class V>

@@ -13,7 +13,7 @@
 
 namespace mflash {
 
-template<class VSource, class VDestination, class E>
+template<class VSource, class VDestination, class E, class IdType>
 class MAlgorithm {
 public:
 
@@ -21,35 +21,35 @@ public:
 	 * Called before start the processing of each edge to initialize the values to transfer using edges.
 	 *
 	 */
-	virtual void initialize_source(MatrixWorker<E> &worker,
-			Element<VSource> &destination) {
+	virtual void initialize_source(MatrixWorker<E, IdType> &worker,
+			Element<VSource, IdType> &destination) {
 	}
 
 	/**
 	 * Called before start the processing of each each to initialize the values of the output or the accumulators.
 	 */
-	virtual void initialize(MatrixWorker<E> &worker,
-			Element<VDestination> &destination) = 0;
+	virtual void initialize(MatrixWorker<E, IdType>  &worker,
+			Element<VDestination, IdType> &destination) = 0;
 
 	/**
 	 * Called for each edge to transfers data since source to destination. On the destination is accumulated temporal state for the destination vertex,
 	 * if it is used multi-thread each thread maintain its own accumulator.
 	 */
-	virtual void gather(MatrixWorker<E> &worker, Element<VSource> &source,
-			Element<VDestination> &destination, E &edge_data) = 0;
+	virtual void gather(MatrixWorker<E, IdType>  &worker, Element<VSource> &source,
+			Element<VDestination, IdType> &destination, E &edge_data) = 0;
 
 	/**
 	 * Called to combine accumulators between threads.
 	 */
-	virtual void sum(Element<VDestination> &accumulator1,
-			Element<VDestination> &accumulator2,
-			Element<VDestination> &out_accumulator) = 0;
+	virtual void process(Element<VDestination> &accumulator1,
+			Element<VDestination, IdType> &accumulator2,
+			Element<VDestination, IdType> &out_accumulator) = 0;
 
 	/**
 	 * Called after combine the accumulators for each vertex to update the vertex value.
 	 */
-	virtual void apply(MatrixWorker<E> &worker,
-			Element<VDestination> &out_element) = 0;
+	virtual void apply(MatrixWorker<E, IdType>  &worker,
+			Element<VDestination, IdType> &out_element) = 0;
 
 	/**
 	 *  Check is the initialized method is executed. By default is false and MFlash uses the current value stored.
@@ -77,14 +77,14 @@ public:
 	/**
 	 * Called before an iteration starts.
 	 */
-	virtual void before_iteration(int iteration, MatrixWorker<E> &worker) {
+	virtual void before_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {
 
 	}
 
 	/**
 	 * Called after an iteration has finished.
 	 */
-	virtual void after_iteration(int iteration, MatrixWorker<E> &worker) {
+	virtual void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {
 	}
 
 	virtual ~MAlgorithm() {

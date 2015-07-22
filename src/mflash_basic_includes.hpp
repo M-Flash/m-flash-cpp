@@ -11,8 +11,15 @@
 #include <assert.h>
 
 #include "util/easylogging++.h"
+#include "core/type.hpp"
 #include "util/cmdopts.hpp"
 #include "core/util.hpp"
+#include "core/conversions.hpp"
+#include "core/mapped_stream.hpp"
+#include "core/splitter_buffer_block_counting.hpp"
+#include "core/vector.hpp"
+#include "core/primitivevector.hpp"
+#include "core/matrix.hpp"
 
 
 INITIALIZE_EASYLOGGINGPP
