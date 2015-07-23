@@ -154,8 +154,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 		in_vertex.value = (VSource*)in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
 		out_vertex_accumulator.value = (VDestination*)out->get_element(out_vertex_id);
-		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,
-				edge_data);
+		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,edge_data);
 		ptr += next;
 	}
 }

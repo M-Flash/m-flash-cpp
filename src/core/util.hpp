@@ -293,7 +293,7 @@ inline int64 getVeticesByPartition(int64 element_size) {
  */
 
 template<class E, class IdType>
-inline double getBlockRatio(int partitions, int64 vertices_by_partition, int64 edges) {
+inline double getBlockRatio(int64 partitions, int64 vertices_by_partition, int64 edges) {
 	return ((double)1)/partitions + ( ((double)2) * edges * getEdgeSize<E, IdType>()/ vertices_by_partition);
 }
 
@@ -301,7 +301,7 @@ inline double getBlockRatio(int partitions, int64 vertices_by_partition, int64 e
 
 
 template<class E, class IdType>
-inline BlockType getBlockType(int partitions, int64 vertices_by_partition, int64 edges) {
+inline BlockType getBlockType(int64 partitions, int64 vertices_by_partition, int64 edges) {
 	double ratio = getBlockRatio<E, IdType>(partitions, vertices_by_partition, edges);
 	return ratio < 1.0 ? BlockType::SPARSE : BlockType::DENSE;
 }

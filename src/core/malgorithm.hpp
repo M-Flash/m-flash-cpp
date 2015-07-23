@@ -52,15 +52,6 @@ public:
 			Element<VDestination, IdType> &out_element) = 0;
 
 	/**
-	 *  Check is the initialized method is executed. By default is false and MFlash uses the current value stored.
-	 *  When it is true, it is executed before iteration starts and after before_iteration method.
-	 *
-	 */
-	virtual bool is_source_initialized() {
-		return false;
-	}
-
-	/**
 	 *  Check is the initialized method is executed. By default is true.
 	 */
 	virtual bool is_initialized() {
@@ -86,6 +77,32 @@ public:
 	 */
 	virtual void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {
 	}
+
+
+	/**
+	 *
+	 */
+	virtual bool is_source_loaded() {
+		return true;
+	}
+
+	/**
+	 *
+	 */
+	virtual bool is_destination_loaded() {
+		return true;
+	}
+
+	/**
+	 *  Check is the initialized method is executed. By default is false and MFlash uses the current value stored.
+	 *  When it is true, it is executed before iteration starts and after before_iteration method.
+	 *
+	 */
+	virtual bool is_destination_stored() {
+		return true;
+	}
+
+
 
 	virtual ~MAlgorithm() {
 	}

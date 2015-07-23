@@ -69,13 +69,15 @@ template <class V, class E, class IdType>
 	  set_conf("elementsize", to_string(2 * sizeof(V)));
 	  matrix.load();
 
-	  string path = get_parent_directory(matrix.get_file()) + FILE_SEPARATOR;
+	  destination.resize(matrix.size());
+
+	  string path = get_parent_directory(matrix.get_file());
       string degree_file = get_out_degree_file(matrix.get_file());
       string next_file = path + "next";
 
-      PrimitiveVector<V, IdType> degree_vec(degree_file);
+      PrimitiveVector<V, IdType> degree_vec(degree_file, matrix.size());
       PrimitiveVector<V, IdType> *current_vec = &destination;
-      PrimitiveVector<V, IdType> *next_vec = new PrimitiveVector<V, IdType> (next_file);
+      PrimitiveVector<V, IdType> *next_vec = new PrimitiveVector<V, IdType> (next_file, matrix.size());
       PrimitiveVector<V, IdType>* tmp;
 
       DegreeOperator<V,E, IdType> degree_operator;
@@ -85,10 +87,8 @@ template <class V, class E, class IdType>
       if(!exist_file(degree_file)){
           matrix.operate(degree_operator, degree_vec, degree_vec);
       }
-      Matrix<E, IdType> m = m.transpose();
+      Matrix<E, IdType> m = matrix.transpose();
       LOG (INFO) << "PR  = 1/N";
-
-
 
       destination.fill((V)1/matrix.size());
       for (int iteration = 0; iteration < iterations; iteration++){

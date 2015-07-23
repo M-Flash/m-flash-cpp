@@ -81,6 +81,21 @@ public:
 		return properties;
 	}
 
+	MatrixProperties has_sparse_blocks() {
+
+		if(properties == NULL) return false;
+
+		int n = properties->partitions;
+		for(int i = 0 ; i < n; i++){
+			for(int j = 0 ; j < n; j++){
+				if(BlockType::SPARSE == getBlockType<E,IdType>(n, properties->vertices_partition, properties->getEdgesBlock(i, j))){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	void set_matrix_properties(MatrixProperties &newProperties){
 		if(properties != NULL) delete properties;
 

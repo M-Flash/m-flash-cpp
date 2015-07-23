@@ -27,7 +27,7 @@ namespace mflash{
 
 	struct MatrixProperties;
 
-	template <class E = EmptyField, class IdType = int>
+	template <class E = EmptyField, class IdType>
 	MatrixProperties convert(const std::string graph_file, int vertex_size, std::string file_type_str = "null"){
 
 		LOG(INFO) << "==== PREPROCESSING ==== ";
@@ -37,7 +37,7 @@ namespace mflash{
 
 		int64 buffer_size = get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE);
 		int64 vertices_by_partition = getVeticesByPartition(vertex_size);
-		int64 edge_data_size = mflash::getEdgeSize<E, IdType>();
+		int64 edge_data_size = mflash::getEdgeDataSize<E>();
 
 
 		if(file_type_str == "null"){

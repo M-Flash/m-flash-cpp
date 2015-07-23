@@ -113,7 +113,13 @@ public:
 	template<class VSource, class VDestination, class MALGORITHM>
 	void operate(MALGORITHM &algorithm);
 
-	//friend class EdgeListThread<E, IdType>;
+	GenericArray* get_source_array(){
+		return source_pointer;
+	}
+
+	GenericArray* get_destination_array(){
+		return destination_pointer;
+	}
 
 };
 
@@ -341,7 +347,7 @@ inline void MatrixWorker<E, IdType>::load_fields(FieldType type, int64 offset) {
 
 		if (default_destination != 0) {
 			Array<VDestination, IdType> *destination_wrapped = dynamic_cast<Array<VDestination, IdType>*>(destination_pointer);
-			destination_wrapped->set_limit(default_source->load_region(offset, elements_partition,destination_pointer->address()));
+			destination_wrapped->set_limit(default_destination->load_region(offset, elements_partition,destination_pointer->address()));
 			destination_wrapped->set_offset(offset);
 		}
 	}
@@ -355,7 +361,7 @@ inline void MatrixWorker<E, IdType>::load_fields(FieldType type, int64 offset) {
 template<class E, class IdType>
 inline void MatrixWorker<E, IdType>::store_fields(int64 offset) {
 	if (default_destination != 0) {
-		default_destination->store_region(offset, element_size(),
+		default_destination->store_region(offset, this->elements_partition(),
 				destination_pointer->address());
 	}
 }
@@ -380,10 +386,6 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 	int64 destination_limit = 0;
 
 	LOG (INFO)<< "- MATRIX OPERATION STARTED";
-	algorithm.before_iteration(0, *this);
-
-	initialize_fields<VSource, VDestination>();
-
 	Array<VDestination, IdType> *destination_wrapped = dynamic_cast<Array<VDestination, IdType>*>(destination_pointer);
 
 	InitializeOperator<VSource, VDestination, E, IdType, MALGORITHM> initialize_operator(&algorithm, this);
@@ -392,6 +394,9 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 	LOG (INFO)<< "- EDGE PREPROCESSING STARTED";
 	preprocessing<VSource, VDestination>();
 	LOG (INFO)<< "- EDGE PREPROCESSING FINISHED";
+
+	initialize_fields<VSource, VDestination>();
+	algorithm.before_iteration(0, *this);
 
 	//int block_id = -1;
 	while (iterator.has_next()) {
@@ -415,10 +420,14 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 			destination_offset = block.get_row()*vertices_by_partition;
 			destination_limit = min(destination_offset + vertices_by_partition, elements-destination_offset) -1;
 
-			LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES";
-			load_fields<VSource, VDestination>(FieldType::DESTINATION, source_offset);
-			LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " LOADED";
 
+			if(algorithm.is_destination_loaded() && default_destination != 0) {
+				LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES";
+				load_fields<VSource, VDestination>(FieldType::DESTINATION, source_offset);
+				LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " LOADED";
+			}else{
+				LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES OMITTED";
+			}
 			//initializing out_vector values
 			if(algorithm.is_initialized() && default_destination != 0) {
 				LOG (INFO) << "--- INITIALIZING ON OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit;
@@ -466,11 +475,15 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 
 		if (last_col != block.get_col()) {
 			last_col = block.get_col();
-			LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
-			load_fields<VSource, VDestination>(FieldType::SOURCE,source_offset);
-			LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << source_limit<< " LOADED";
+			if(algorithm.is_source_loaded() && default_source != 0) {
+				LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
+				load_fields<VSource, VDestination>(FieldType::SOURCE,source_offset);
+				LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << source_limit<< " LOADED";
+			}else{
+				LOG (INFO)<< "--- LOADING IN-ELEMENT STATES OMIITED";
+			}
 		}
-		LOG (INFO)<< "--- PROCESSING EDGES SINCE DENSE BLOCK: " << "----" << block.get_file();
+		LOG (INFO)<< "--- PROCESSING EDGES FROM DENSE BLOCK: " << "----" << block.get_file();
 		EdgeListThread<E, IdType, VSource, VDestination> thread(*this, 0, block);
 		thread.call(algorithm);
 		LOG (INFO)<< "--- PROCESSING EDGES FINALIZED";
@@ -484,9 +497,13 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 		LOG (INFO) << "--- APPLYIN ON OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " OMITTED";
 	}
 
-	LOG (INFO)<< "--- STORING OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit;
-	store_fields(destination_offset);
-	LOG (INFO)<< "--- OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " STORED";
+	if(algorithm.is_destination_stored() && default_destination != 0) {
+		LOG (INFO)<< "--- STORING OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit;
+		store_fields(destination_offset);
+		LOG (INFO)<< "--- OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " STORED";
+	}else{
+		LOG (INFO)<< "--- STORING OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " OMITTED";
+	}
 	//making summarization
 	//sumReplicates(algorithm, worker, outAccumulator, replicates);
 	algorithm.after_iteration(0, *this);
@@ -499,6 +516,8 @@ template<class E, class IdType>
 template<class VSource, class VDestination>
 void MatrixWorker<E, IdType>::preprocessing() {
 
+	int64 vertex_size = max(sizeof(VSource), sizeof(VDestination));
+
 	//block iteration
 	BlockIterator<E,IdType> iterator(matrix, matrix->is_transpose() ? 1 : 0);
 
@@ -508,7 +527,7 @@ void MatrixWorker<E, IdType>::preprocessing() {
 
 	// only one field
 	int64 edge_size_extended = getEdgeSize<E, IdType>() + source_size();
-	SplitterBuffer<IdType> *splitter = new SplitterBuffer<IdType>(matrix->get_file(), edge_size_extended, matrixProperties.vertices_partition * edge_size_extended, matrixProperties.vertices_partition, false, "updates", 1*matrixProperties.partitions);
+	SplitterBuffer<IdType> *splitter = new SplitterBuffer<IdType>(matrix->get_file(), edge_size_extended, matrixProperties.vertices_partition * vertex_size, matrixProperties.vertices_partition, false, "updates", 1*matrixProperties.partitions);
 
 	int64 source_offset;
 	while (iterator.has_next()) {
