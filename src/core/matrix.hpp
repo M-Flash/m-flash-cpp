@@ -43,7 +43,7 @@ class MatrixInterface {
 
 };*/
 
-template<class E, class IdType = int>
+template<class E, class IdType>
 class Matrix { //: MatrixInterface{
 
 	string file;

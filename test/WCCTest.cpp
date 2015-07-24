@@ -8,6 +8,6 @@ int main(int argc, char ** argv){
 	mflash_init(argc, argv);
 	Matrix<EmptyField, int> matrix ("/run/media/hugo/data/datasets/twitter");
 	PrimitiveVector<int, int> pvector("/run/media/hugo/data/datasets/wcc");
-	WCC::run(matrix, pvector);
+	WCC::run(matrix, pvector, true);
 	return 0;
 }

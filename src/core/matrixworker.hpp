@@ -88,7 +88,7 @@ public:
 
 	MatrixWorker(Matrix<E, IdType> &matrix);
 
-	Matrix<E> get_matrix() {
+	Matrix<E, IdType> get_matrix() {
 		return *matrix;
 	}
 
@@ -386,16 +386,18 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 	int64 destination_limit = 0;
 
 	LOG (INFO)<< "- MATRIX OPERATION STARTED";
-	Array<VDestination, IdType> *destination_wrapped = dynamic_cast<Array<VDestination, IdType>*>(destination_pointer);
-
-	InitializeOperator<VSource, VDestination, E, IdType, MALGORITHM> initialize_operator(&algorithm, this);
-	AppyOperator<VSource, VDestination, E, IdType, MALGORITHM> apply_operator(&algorithm, this);
-
 	LOG (INFO)<< "- EDGE PREPROCESSING STARTED";
 	preprocessing<VSource, VDestination>();
 	LOG (INFO)<< "- EDGE PREPROCESSING FINISHED";
 
 	initialize_fields<VSource, VDestination>();
+
+	Array<VDestination, IdType> *destination_wrapped = dynamic_cast<Array<VDestination, IdType>*>(destination_pointer);
+
+	InitializeOperator<VSource, VDestination, E, IdType, MALGORITHM> initialize_operator(&algorithm, this);
+	AppyOperator<VSource, VDestination, E, IdType, MALGORITHM> apply_operator(&algorithm, this);
+
+
 	algorithm.before_iteration(0, *this);
 
 	//int block_id = -1;

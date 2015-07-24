@@ -21,6 +21,7 @@
 #include "core/vector.hpp"
 #include "core/primitivevector.hpp"
 #include "core/matrix.hpp"
+#include "core/primitivematrix.hpp"
 
 
 INITIALIZE_EASYLOGGINGPP
