@@ -56,6 +56,9 @@ namespace mflash{
 		//string v_tmp = path + FILE_SEPARATOR + "tmp.bin";
 		string r_file = path + "r.bin";
 
+		set_conf("elementsize", to_string(2 * sizeof(V)));
+		matrix->load();
+
 		const int64 block_size = matrix->get_elements_by_block();
 		const int64 node_count = matrix->size();
 

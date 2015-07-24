@@ -29,7 +29,7 @@ namespace mflash{
 	class OperationListener {
 		public:
 			virtual void on_change(OperationEvent &e) = 0;
-			virtual ~OperationListener();
+			virtual ~OperationListener(){}
   };
 
 
