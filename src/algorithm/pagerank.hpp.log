@@ -1,0 +1,60 @@
+/*
+ * pagerank.cpp
+ *
+ *  Created on: Mar 3, 2015
+ *      Author: hugo
+ */
+
+
+#include "../core/type.hpp"
+#include "../core/malgorithm.hpp"
+
+//using namespace mflash;
+
+namespace mflash{
+
+
+	#define RESISTANCE 0.85
+	#define N 1222
+
+	//template <class V, class E = EmptyField>
+	template<class VSource, class VDestination, class E, class IdType>
+	class PageRankOperator : public MAlgorithm<VSource, VDestination, E, IdType>{
+		public:
+			void initialize(MatrixWorker<E, IdType> &worker, Element<V> &out_element){
+				*(out_element.value) = 0;
+			}
+			void gather(MatrixWorker<E, IdType> &worker, Element<V> &in_element, Element<V> &out_element, E &edge_data){
+				*(out_element.value) += *(in_element.value);
+			}
+			void process(Element<VDestination, IdType> &accumulator1, Element<VDestination, IdType> &accumulator2, Element<V> &out_accumulator){
+				*(out_accumulator.value) = *(accumulator1.value) + *(accumulator2.value);
+			}
+			void apply(MatrixWorker<E, IdType> &worker, Element<V> &out_element){
+				*(out_element.value) += (1 - RESISTANCE)/N;
+			}
+			bool is_initialized(){return true;}
+			bool is_applied(){return true;}
+
+	};
+
+	template <class V,class E>
+	class PageRank {
+      Matrix<V,E> *matrix;
+      int iterations;
+
+	  public:
+       PageRank(Matrix<V,E> &matrix, int iterations){
+         this->matrix = &matrix;
+         this->iterations = iterations;
+       }
+
+       void run();
+	};
+
+	template <class V,class E>
+	void PageRank<V,E>::run(){
+	  string path = get_parent_directory(matrix->get_file()) + FILE_SEPARATOR;
+
+	}
+}
