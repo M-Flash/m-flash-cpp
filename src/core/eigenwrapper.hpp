@@ -8,7 +8,7 @@
 #ifndef CORE_EIGENWRAPPER_HPP_
 #define CORE_EIGENWRAPPER_HPP_
 
-#include "../../Eigen/Dense"
+#include <eigen3/Eigen/Dense>
 
 typedef Eigen::MatrixXd mat;
 

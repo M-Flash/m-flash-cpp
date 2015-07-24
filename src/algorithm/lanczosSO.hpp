@@ -11,6 +11,8 @@
 #include <cmath>
 #include <sstream>
 #include <string>
+#include <eigen3/Eigen/Dense>
+
 
 #include "../core/eigenwrapper.hpp"
 #include "../core/matrix.hpp"
@@ -18,7 +20,6 @@
 #include "../core/primitivevector.hpp"
 #include "../core/type.hpp"
 #include "../core/util.hpp"
-#include "../../Eigen/Dense"
 #include "../../log/easylogging++.h"
 
 

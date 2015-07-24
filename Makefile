@@ -20,8 +20,20 @@ EXTENSION = $(subst ., ,$(@F))
 SELECTED_FILE = $(word 1, $(EXTENSION))
 PROJECT = /mflash-cpp
 TMPV = $@
+
+all: apps
+apps: example_apps/LancsosSO example_apps/PageRank example_apps/WCC
+
 echo/%: 
 	echo bin/$(@F)
+
+clean:
+	@rm -rf bin/*
+
+example_apps/%: example_apps/%.cpp $(HEADERS)
+	@mkdir -p bin/$(@D)
+	$(CPP) $(CPPFLAGS) -Iexample_apps/ $@.cpp -o bin/$@ $(LINKERFLAGS)
+	
 
 src/%: src/%.cpp $(HEADERS)
 	@mkdir -p bin/
@@ -38,9 +50,5 @@ selected_test/%:
 selected_test_debug/%: 
 	@mkdir -p bin/
 	$(CPP) $(CPPFLAGS-DEBUG) -I. test/${SELECTED_FILE}.cpp -o bin/${SELECTED_FILE} $(LINKERFLAGS)
-
-all: test/$(DEFAULT_APP).cpp $(HEADERS)
-	@mkdir -p bin/
-	$(CPP) $(CPPFLAGS) -I. test/$(DEFAULT_APP).cpp -o bin/$(DEFAULT_APP) $(LINKERFLAGS)
 
 	
