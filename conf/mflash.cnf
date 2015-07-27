@@ -2,8 +2,8 @@
 # M-Flash configuration.
 # Commandline parameters override values in the configuration file.
 # execthreads=2
-# configuration for 8GB
-memorysize = 8589934592
+# configuration for 4GB
+memorysize = 4294967296
 #filetype = adjlist
 edgeseparator = 	
 
