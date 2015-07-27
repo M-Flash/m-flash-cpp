@@ -99,8 +99,8 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITH
 	IdType in_vertex_id;
 	IdType out_vertex_id;
 
-	GenericArray *in = this->worker->source_pointer;
-	GenericArray *out = this->worker->destination_pointer;
+	Array<VSource, IdType> *in = (Array<VSource, IdType>*)this->worker->source_pointer;
+	Array<VDestination, IdType>  *out =  (Array<VDestination, IdType> *)this->worker->destination_pointer;
 
 	Element<VSource, IdType> in_vertex;
 	Element<VDestination, IdType> out_vertex_accumulator;
@@ -134,8 +134,8 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 	IdType in_vertex_id;
 	IdType out_vertex_id;
 
-	GenericArray *in = this->worker->source_pointer;
-	GenericArray *out = this->worker->destination_pointer;
+	Array<VSource, IdType> *in = (Array<VSource, IdType>*)this->worker->source_pointer;
+	Array<VDestination, IdType>  *out =  (Array<VDestination, IdType> *)this->worker->destination_pointer;
 
 	Element<VSource, IdType> in_vertex;
 	Element<VDestination, IdType> out_vertex_accumulator;
@@ -167,8 +167,8 @@ void EdgeListThread<E, IdType, VSource, VDestination>::sparse_transpose(MALGORIT
 	IdType in_vertex_id;
 	IdType out_vertex_id;
 
-	GenericArray *in = this->worker->source_pointer;
-	GenericArray *out = this->worker->destination_pointer;
+	Array<VSource, IdType> *in = (Array<VSource, IdType>*)this->worker->source_pointer;
+	Array<VDestination, IdType>  *out =  (Array<VDestination, IdType> *)this->worker->destination_pointer;
 
 	Element<VSource, IdType> in_vertex;
 	Element<VDestination, IdType> out_vertex_accumulator;
@@ -198,8 +198,8 @@ void EdgeListThread<E, IdType, VSource, VDestination>::sparse_normal(MALGORITHM 
 	IdType in_vertex_id;
 	IdType out_vertex_id;
 
-	GenericArray *in = this->worker->source_pointer;
-	GenericArray *out = this->worker->destination_pointer;
+	Array<VSource, IdType> *in = (Array<VSource, IdType>*)this->worker->source_pointer;
+	Array<VDestination, IdType>  *out =  (Array<VDestination, IdType> *)this->worker->destination_pointer;
 
 	Element<VSource, IdType> in_vertex;
 	Element<VDestination, IdType> out_vertex_accumulator;
