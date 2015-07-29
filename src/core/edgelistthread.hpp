@@ -116,9 +116,9 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITH
 		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
 		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
 		/*if(this->worker->load_vertex_data)*/
-		in_vertex.value = (VSource*)in->get_element(in_vertex_id);
+		in_vertex.value = in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
-		out_vertex_accumulator.value = (VDestination*) out->get_element(out_vertex_id);
+		out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,
 				edge_data);
 		ptr += next;
@@ -148,12 +148,12 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 	ptr = stream->current_ptr;
 	last_ptr = stream->last_ptr;
 	while (ptr < last_ptr) {
-		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
-		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
+		in_vertex.id = in_vertex_id = *((IdType*) ptr);
+		out_vertex_accumulator.id = out_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
 		/*if(this->worker->load_vertex_data)*/
-		in_vertex.value = (VSource*)in->get_element(in_vertex_id);
+		in_vertex.value = in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
-		out_vertex_accumulator.value = (VDestination*)out->get_element(out_vertex_id);
+		out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,edge_data);
 		ptr += next;
 	}
@@ -184,7 +184,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::sparse_transpose(MALGORIT
 		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
 		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
 		in_vertex.value = (VSource*) (ptr + (sizeof(IdType) <<1));
-		out_vertex_accumulator.value = (VDestination*) out->get_element(out_vertex_id);
+		out_vertex_accumulator.value =  out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
 		ptr += next;
 	}
@@ -215,7 +215,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::sparse_normal(MALGORITHM 
 		in_vertex.id = in_vertex_id = *((IdType*) ptr);
 		out_vertex_accumulator.id = out_vertex_id = *((IdType*)(ptr + sizeof(IdType)));
 		in_vertex.value = (VSource*) (ptr + (sizeof(IdType) <<1));
-		out_vertex_accumulator.value = (VDestination*)out->get_element(out_vertex_id);
+		out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator, edge_data);
 		ptr += next;
 	}

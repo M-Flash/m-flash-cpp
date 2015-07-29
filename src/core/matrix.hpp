@@ -168,6 +168,7 @@ template<class E, class IdType>
 Matrix<E, IdType> Matrix<E, IdType>::transpose() {
 	Matrix <E,IdType > t(*this);
 	t.transpose_ = !t.transpose_;
+	t.worker = new MatrixWorker<E, IdType>(t);
 	return (t);
 }
 
