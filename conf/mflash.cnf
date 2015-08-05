@@ -3,7 +3,7 @@
 # Commandline parameters override values in the configuration file.
 # execthreads=2
 # configuration for 4GB
-memorysize = 4294967296
+memorysize = 8589934592
 #filetype = adjlist
 edgeseparator = 	
 

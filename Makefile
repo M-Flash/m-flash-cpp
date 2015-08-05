@@ -2,7 +2,7 @@
 # 
 # Replace GRAPHCHI_DIR and BOOST_DIR with your proper library directories.
 
-MFLASH_DIR = -I/hugo/doutorado/code/mflash-cpp/
+MFLASH_DIR = -I/run/media/hugo/data/project/code/m-flash-cpp/
 BOOST_DIR = -I/usr/lib64/ -I/usr/lib/x86_64-linux-gnu/
 BOOST_LIBRARIES = -lboost_filesystem -lboost_system 
 SO_LIBRARIES = 
