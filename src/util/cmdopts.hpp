@@ -46,19 +46,19 @@
 
 namespace mflash {
     
-    static bool _cmd_configured = false;
+    bool _cmd_configured = false;
     
-    static int _argc;
-    static char **_argv;
-    static std::map<std::string, std::string> conf;
+    int _argc;
+    char **_argv;
+    std::map<std::string, std::string> conf;
     
     
-    static void  set_conf(std::string key, std::string value) {
+    void  set_conf(std::string key, std::string value) {
         conf[key] = value;
     }
     
     // Config file
-    static std::string  get_config_option_string(const char *option_name) {
+    std::string  get_config_option_string(const char *option_name) {
         if (conf.find(option_name) != conf.end()) {
             return conf[option_name];
         } else {
@@ -67,7 +67,7 @@ namespace mflash {
         }
     }
     
-    static  std::string  get_config_option_string(const char *option_name,
+     std::string  get_config_option_string(const char *option_name,
                                                  std::string default_value) {
         if (conf.find(option_name) != conf.end()) {
             return conf[option_name];
@@ -76,7 +76,7 @@ namespace mflash {
         }
         
     }
-    static int  get_config_option_int(const char *option_name, int default_value) {
+    int  get_config_option_int(const char *option_name, int default_value) {
         if (conf.find(option_name) != conf.end()) {
             return atoi(conf[option_name].c_str());
         } else {
@@ -84,7 +84,7 @@ namespace mflash {
         }
     }
     
-    static int  get_config_option_int(const char *option_name) {
+    int  get_config_option_int(const char *option_name) {
         if (conf.find(option_name) != conf.end()) {
             return atoi(conf[option_name].c_str());
         } else {
@@ -93,14 +93,14 @@ namespace mflash {
         }
     }
     
-    static uint64_t  get_config_option_long(const char *option_name, uint64_t default_value) {
+    uint64_t  get_config_option_long(const char *option_name, uint64_t default_value) {
         if (conf.find(option_name) != conf.end()) {
             return atol(conf[option_name].c_str());
         } else {
             return default_value;
         }
     }
-    static double  get_config_option_double(const char *option_name, double default_value) {
+    double  get_config_option_double(const char *option_name, double default_value) {
         if (conf.find(option_name) != conf.end()) {
             return atof(conf[option_name].c_str());
         } else {
@@ -108,8 +108,8 @@ namespace mflash {
         }
     }
     
-    static void set_argc(int argc, const char ** argv);
-    static void set_argc(int argc, const char ** argv) {
+    void set_argc(int argc, const char ** argv);
+    void set_argc(int argc, const char ** argv) {
         _argc = argc;
         _argv = (char**)argv;
         _cmd_configured = true;
@@ -135,16 +135,16 @@ namespace mflash {
 
     }
     
-    static void mflash_init(int argc, const char ** argv);
-    static void mflash_init(int argc, const char ** argv) {
+    void mflash_init(int argc, const char ** argv);
+    void mflash_init(int argc, const char ** argv) {
         set_argc(argc, argv);
     }
     
-    static void mflash_init(int argc, char ** argv){
+    void mflash_init(int argc, char ** argv){
     	mflash_init(argc, const_cast<const char**>(argv));
     }
 
-    static void check_cmd_init() {
+    void check_cmd_init() {
         if (!_cmd_configured) {
             std::cout << "ERROR: command line options not initialized." << std::endl;
             std::cout << "       You need to call set_argc() in the beginning of the program." << std::endl;
@@ -154,7 +154,7 @@ namespace mflash {
     
 
     
-    static std::string  get_option_string(const char *option_name,
+    std::string  get_option_string(const char *option_name,
                                          std::string default_value)
     {
         check_cmd_init();
@@ -166,7 +166,7 @@ namespace mflash {
         return get_config_option_string(option_name, default_value);
     }
     
-    static std::string  get_option_string(const char *option_name)
+    std::string  get_option_string(const char *option_name)
     {
         int i;
         check_cmd_init();
@@ -177,7 +177,7 @@ namespace mflash {
         return get_config_option_string(option_name);
     }
     
-    static std::string  get_option_string_interactive(const char *option_name, std::string options)
+    std::string  get_option_string_interactive(const char *option_name, std::string options)
     {
         int i;
         check_cmd_init();
@@ -202,7 +202,7 @@ namespace mflash {
     
     
     
-    static int  get_option_int(const char *option_name, int default_value)
+    int  get_option_int(const char *option_name, int default_value)
     {
         int i;
         check_cmd_init();
@@ -214,7 +214,7 @@ namespace mflash {
         return get_config_option_int(option_name, default_value);
     }
     
-    static int  get_option_int(const char *option_name)
+    int  get_option_int(const char *option_name)
     {
         int i;
         check_cmd_init();
@@ -229,7 +229,7 @@ namespace mflash {
 
     
     
-    static uint64_t  get_option_long(const char *option_name, uint64_t default_value)
+    uint64_t  get_option_long(const char *option_name, uint64_t default_value)
     {
         int i;
         check_cmd_init();
@@ -240,7 +240,7 @@ namespace mflash {
         return get_config_option_long(option_name, default_value);
     }
     
-    static float  get_option_float(const char *option_name, float default_value)
+    float  get_option_float(const char *option_name, float default_value)
     {
         int i;
         check_cmd_init();

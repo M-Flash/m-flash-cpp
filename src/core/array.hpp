@@ -286,7 +286,7 @@ inline void Array<V, IdType>::set_offset(int64 pos) {
 template<class V, class IdType>
 V Array<V, IdType>::operate(Operator<V, IdType> &operator_, Array<V, IdType> &left, Array<V, IdType> &right,
 		Array<V, IdType> &out) {
-	V value;
+	V value = V();
 	UnaryReducer<V, IdType> * unary_reducer_ptr =
 			dynamic_cast<UnaryReducer<V, IdType> *>(&operator_);
 	BinaryReducer<V, IdType> * binary_reducer_ptr =
@@ -321,7 +321,7 @@ V Array<V, IdType>::operate(Operator<V, IdType> &operator_, Array<V, IdType> &le
 
 template<class V, class IdType>
 V Array<V, IdType>::operate(ZeroOperator<V, IdType> &operator_, Array<V, IdType> &left) {
-	V value;
+	V value = V();
 	ZeroThreadDataType<V, IdType> t(0, operator_, left, left, left);
 	t.call();
 	return value;
@@ -330,7 +330,7 @@ V Array<V, IdType>::operate(ZeroOperator<V, IdType> &operator_, Array<V, IdType>
 template<class V, class IdType>
 V Array<V, IdType>::operate(UnaryOperator<V, IdType> &operator_, Array<V, IdType> &left,
 		Array<V, IdType> &out) {
-	V value;
+	V value = V();
 	UnaryThreadDataType<V, IdType> t(0, operator_, left, left, out);
 	t.call();
 	return value;
@@ -339,7 +339,7 @@ V Array<V, IdType>::operate(UnaryOperator<V, IdType> &operator_, Array<V, IdType
 template<class V, class IdType>
 V Array<V, IdType>::operate(BinaryOperator<V, IdType> &operator_, Array<V, IdType> &left,
 		Array<V, IdType> &right, Array<V, IdType> &out) {
-	V value;
+	V value = V();
 	BinaryThreadDataType<V, IdType> t(0, operator_, left, right, out);
 	t.call();
 	return value;

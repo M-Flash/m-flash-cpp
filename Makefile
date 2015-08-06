@@ -22,7 +22,7 @@ PROJECT = /mflash-cpp
 TMPV = $@
 
 all: apps
-apps: example_apps/LancsosSO example_apps/PageRank example_apps/WCC
+apps: example_apps/lancsosso example_apps/pagerank example_apps/wcc
 
 echo/%: 
 	echo bin/$(@F)

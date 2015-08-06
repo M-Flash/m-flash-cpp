@@ -44,7 +44,7 @@ inline void PrimitiveMatrix<V, E, IdType>::multiply(
 }
 
 template<class V, class E, class IdType>
-class SpMVMAlgorithmPrimitiveMatrix: public MAlgorithm<V, V, E, IdType> {
+class SpMVMAlgorithmPrimitiveMatrix { //: public MAlgorithm<V, V, E, IdType> {
 public:
 	inline void initialize(MatrixWorker<E, IdType> &worker, Element<V, IdType> &out_element) {
 		*(out_element.value) = 0;
@@ -62,6 +62,13 @@ public:
 	inline void apply(MatrixWorker<E, IdType> &worker, Element<V, IdType> &out_element) {}
 	inline bool is_initialized() {return true;}
 	inline bool is_applied() {return false;}
+
+	inline bool is_destination_loaded(){return true;}
+	inline bool is_source_loaded(){return true;}
+	inline bool is_destination_stored(){return true;}
+
+	inline void before_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
+	inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
 
 };
 }

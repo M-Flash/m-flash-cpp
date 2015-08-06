@@ -10,8 +10,8 @@
 ### Pagerank 
 ```
 cd [M-FLASH_ROOT];
-make example_apps/PageRank
-bin/example_apps/PageRank file [FILE_GRAPH] niters 4
+make example_apps/pagerank
+bin/example_apps/pagerank file [FILE_GRAPH] niters 4
 ```
 
 ## License

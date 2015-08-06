@@ -76,7 +76,7 @@ namespace mflash{
     };
 
   template <class V, class E, class IdType>
-  class WCCAlgorithmUnionFindOperator: public MAlgorithm<V, V, E, IdType>{
+  class WCCAlgorithmUnionFindOperator {//: public MAlgorithm<V, V, E, IdType>{
   public:
       V*counts;
       V *sets;
@@ -121,6 +121,7 @@ namespace mflash{
       inline bool is_initialized(){return false;}
       inline bool is_source_loaded(){return false;}
       inline bool is_destination_loaded(){return false;}
+      inline bool is_destination_stored(){return true;}
       inline bool is_applied(){return false;}
 
       inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {
@@ -133,7 +134,7 @@ namespace mflash{
   };
 
   template <class V, class E, class IdType>
-    class WCCAlgorithmIterativeOperator: public MAlgorithm<V, V, E, IdType>{
+    class WCCAlgorithmIterativeOperator{//: public MAlgorithm<V, V, E, IdType>{
       public:
         bool state = false;
         bool initialize_ = true;
@@ -163,6 +164,10 @@ namespace mflash{
         inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {
           cout<< "CHANGES = "<<counter << endl;
         }
+
+		inline bool is_destination_loaded(){return true;}
+		inline bool is_source_loaded(){return true;}
+		inline bool is_destination_stored(){return true;}
     };
 
   class WCC{

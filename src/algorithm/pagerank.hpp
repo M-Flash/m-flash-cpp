@@ -6,11 +6,7 @@
  */
 
 
-#include "../core/malgorithm.hpp"
-#include "../core/type.hpp"
-#include "../core/primitivevector.hpp"
-
-//using namespace mflash;
+#include "../mflash_basic_includes.hpp"
 
 namespace mflash{
 
@@ -18,7 +14,7 @@ namespace mflash{
 #define RESISTANCE 0.85
 
 template <class V, class E, class IdType>
-  class DegreeOperator : public MAlgorithm<V, V, E, IdType>{
+  class DegreeOperator {//: public MAlgorithm<V, V, E, IdType>{
     public:
       inline void initialize(MatrixWorker<E, IdType> &worker, Element<V,IdType> &out_element){
         *(out_element.value) = 0;
@@ -36,11 +32,18 @@ template <class V, class E, class IdType>
       }
       inline bool is_initialized(){return true;}
       inline bool is_applied(){return true;}
+
+	  inline bool is_destination_loaded(){return true;}
+	  inline bool is_source_loaded(){return true;}
+	  inline bool is_destination_stored(){return true;}
+
+	  inline void before_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
+	  inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
   };
 
 
 	template <class V, class E, class IdType>
-	class PageRankOperator : public MAlgorithm<V, V, E, IdType>{
+	class PageRankOperator {//: public MAlgorithm<V, V, E, IdType>{
 		public:
 		IdType n;
 	    inline void initialize(MatrixWorker<E, IdType> &worker, Element<V, IdType> &out_element){
@@ -57,6 +60,13 @@ template <class V, class E, class IdType>
 		}
 		inline bool is_initialized(){return true;}
 		inline bool is_applied(){return true;}
+
+		inline bool is_destination_loaded(){return true;}
+		inline bool is_source_loaded(){return true;}
+		inline bool is_destination_stored(){return true;}
+
+		inline void before_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
+		inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
 
 	};
 

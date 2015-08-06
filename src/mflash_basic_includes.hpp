@@ -8,6 +8,12 @@
 #ifndef MFLASH_BASIC_INCLUDES_HPP_
 #define MFLASH_BASIC_INCLUDES_HPP_
 
+#ifdef DEBUG_BUILD
+#  define DEBUG(x) fprintf(stderr, x)
+#else
+#  define DEBUG(x) do {} while (0)
+#endif
+
 #include <assert.h>
 
 #include "util/easylogging++.h"
