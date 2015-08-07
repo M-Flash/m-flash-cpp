@@ -15,4 +15,4 @@ bin/example_apps/pagerank file [FILE_GRAPH] niters 4
 ```
 
 ## License
-M-Flash is licensed under the Apache License, Version 2.0. 
+M-Flash is licensed under the Mozilla Public License, Version 2.0. 
