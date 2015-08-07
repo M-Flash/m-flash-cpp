@@ -1,10 +1,10 @@
-/*
- * vector
- *
- *  Created on: Feb 28, 2015
- *      Author: hugo
- */
-
+// Copyright (C) 2014 Hugo Gualdron <gualdron@usp.br>, Sao Paulo University
+// Copyright (C) 2014 Jose Fernando Rodrigues Junior, Sao Paulo University
+// Copyright (C) 2014 Duen Horng Chau, Georgia Tech University
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef MFLASH_CPP_CORE_VECTOR_HPP_
 #define MFLASH_CPP_CORE_VECTOR_HPP_
 
@@ -19,7 +19,7 @@
 #include "../core/type.hpp"
 #include "../core/util.hpp"
 #include "../core/linearcombination.hpp"
-#include "../../log/easylogging++.h"
+#include "../util/easylogging++.h"
 
 
 using namespace std;

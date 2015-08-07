@@ -5,15 +5,8 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 #ifndef MFLASH_BASIC_INCLUDES_HPP_
 #define MFLASH_BASIC_INCLUDES_HPP_
-
-#ifdef DEBUG_BUILD
-#  define DEBUG(x) fprintf(stderr, x)
-#else
-#  define DEBUG(x) do {} while (0)
-#endif
 
 #include <assert.h>
 

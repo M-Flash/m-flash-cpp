@@ -1,4 +1,3 @@
-
 # M-Flash configuration.
 # Commandline parameters override values in the configuration file.
 # execthreads=2
@@ -6,16 +5,3 @@
 memorysize = 8589934592
 #filetype = adjlist
 edgeseparator = 	
-
-loadthreads = 4
-niothreads = 4
-
-# Comma-delimited list of metrics output reporters.
-# Can be "console", "file" or "html"
-metrics.reporter = console,file,html
-metrics.reporter.filename = graphchi_metrics.txt
-metrics.reporter.htmlfile = graphchi_metrics.html
-
-
-
-

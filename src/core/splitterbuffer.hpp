@@ -1,18 +1,21 @@
-
+// Copyright (C) 2014 Hugo Gualdron <gualdron@usp.br>, Sao Paulo University
+// Copyright (C) 2014 Jose Fernando Rodrigues Junior, Sao Paulo University
+// Copyright (C) 2014 Duen Horng Chau, Georgia Tech University
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#ifndef CORE_SPLITTERBUFFER_HPP_
+#define CORE_SPLITTERBUFFER_HPP_
 
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
-#include "../../log/easylogging++.h"
+#include "../util/easylogging++.h"
 #include "type.hpp"
 #include "util.hpp"
-
-
-#ifndef CORE_SPLITTERBUFFER_HPP_
-#define CORE_SPLITTERBUFFER_HPP_
-
 
 namespace mflash{
 
