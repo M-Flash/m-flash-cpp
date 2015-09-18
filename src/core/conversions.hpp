@@ -16,6 +16,7 @@
 #include "../util/easylogging++.h"
 #include "../util/cmdopts.hpp"
 #include "edgeconversor.hpp"
+#include "edgelistconversor.hpp"
 #include "mapped_stream.hpp"
 #include "splitter_buffer_block_counting.hpp"
 #include "splitter_buffer_extended.hpp"
@@ -44,8 +45,8 @@ namespace mflash{
 			file_type_str = get_option_string_interactive("filetype", "edgelist, adjlist, binedgelist");
 		}
 
-		if (file_type_str != "adjlist" && file_type_str != "edgelist"  && file_type_str != "binedgelist") {
-			LOG(ERROR) << "You need to specify filetype: 'edgelist',  'adjlist', or 'binedgelist'." << std::endl;
+		if (file_type_str != "adjlist" && file_type_str != "edgelist" && file_type_str != "adjlist2"  && file_type_str != "binedgelist") {
+			LOG(ERROR) << "You need to specify filetype: 'edgelist',  'adjlist', 'adjlist2', or 'binedgelist'." << std::endl;
 			assert(false);
 		}
 
@@ -55,7 +56,9 @@ namespace mflash{
 
 		if (file_type_str == "adjlist" || file_type_str == "edgelist"){
 			EdgeConversor<IdType>::process(graph_file, ' ',  file_type_str == "edgelist" , *splitter );
-		} else {
+		} else if (file_type_str == "adjlist2" ){
+			EdgeListConversor<IdType>::process(graph_file, ' ', *splitter );
+		}else {
 			LOG(ERROR) << "Support for "<< file_type_str  << " not implemented.";
 			assert(false);
 		}

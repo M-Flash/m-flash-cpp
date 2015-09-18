@@ -5,7 +5,7 @@
 using namespace mflash;
 int main(int argc, char* argv[]){
 	mflash_init(argc, argv);
-	std::cout<<mflash::get_config_option_string("filetype")<<std::endl;
+	//std::cout<<mflash::get_config_option_string("filetype", "ed")<<std::endl;
 	std::cout<<mflash::get_config_option_string("memorysize")<<std::endl;
 	//TYNY GRAPH
 /*
@@ -38,8 +38,8 @@ int main(int argc, char* argv[]){
 */
 
 	//LiveJournal
-	std::string graph_file = "/run/media/hugo/hugo/datasets/lj/lj";
-	std::string format = "edgelist";
+	std::string graph_file = "/data/datasets/test";
+	std::string format = "adjlist2";
 
 
 	mflash::convert<EmptyField, int>(graph_file, sizeof(float), format);
