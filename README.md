@@ -14,5 +14,26 @@ make example_apps/pagerank
 bin/example_apps/pagerank file [FILE_GRAPH] niters 4
 ```
 
+### Weakly Connected Components (Iterative)
+```
+cd [M-FLASH_ROOT];
+make example_apps/wcc
+bin/example_apps/wcc file [FILE_GRAPH] iterative 1 niters 4 
+```
+Iterative until convergency
+```
+cd [M-FLASH_ROOT];
+make example_apps/wcc
+bin/example_apps/wcc file [FILE_GRAPH] iterative 1 
+```
+
+### Weakly Connected Components (Union-Find)
+```
+cd [M-FLASH_ROOT];
+make example_apps/wcc
+bin/example_apps/wcc file [FILE_GRAPH] iterative 0 
+```
+
+
 ## License
 M-Flash is licensed under the Mozilla Public License, Version 2.0. 

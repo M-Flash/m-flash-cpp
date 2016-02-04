@@ -65,24 +65,23 @@ namespace mflash{
 
 		stream = new MappedStream(block->get_file());
 
-/*
-		const ElementIdType id_size = this->worker->get_matrix().get_element_id_size();
-		int64 vertex_value_size = (BlockType::SPARSE== this->properties->type? sizeof(V): 0);
-		const int bytes = 2 *(id_size == ElementIdType::SIMPLE? sizeof(int): sizeof(int64))  + vertex_value_size;
-		const int step = (MFLASH_MATRIX_THREADS -1)* bytes;
-*/
 		int step = 0;
+
 		if(block->isDense()){
 		  //this->stream->set_position (this->properties->offset + bytes * this->id);
 		  if(this->worker->matrix->is_transpose()){
+			  LOG (INFO) << "--- PROCESSING DENSE BLOCK IN TRANSPOSE MODE";
 			  dense_transpose(algorithm, step);
 		  }else{
+			  LOG (INFO) << "--- PROCESSING DENSE BLOCK IN NORMAL MODE";
 			  dense_normal(algorithm, step);
 		  }
 		}else{
 		  if(this->worker->matrix->is_transpose()){
+			  LOG (INFO) << "--- PROCESSING SPARSE BLOCK IN TRANSPOSE MODE";
 			  sparse_transpose(algorithm, step);
 		  }else{
+			  LOG (INFO) << "--- PROCESSING SPARSE BLOCK IN NORMAL MODE";
 			  sparse_normal(algorithm, step);
 		  }
 		}
@@ -109,16 +108,16 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITH
 
 	char * ptr;
 	char * last_ptr;
-
+	LOG (INFO) << "Testing code";
 	ptr = stream->current_ptr;
 	last_ptr = stream->last_ptr;
 	while (ptr < last_ptr) {
 		out_vertex_accumulator.id = out_vertex_id = *((IdType*) ptr);
 		in_vertex.id = in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
 		/*if(this->worker->load_vertex_data)*/
-		in_vertex.value = in->get_element(in_vertex_id);
+		//in_vertex.value = in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
-		out_vertex_accumulator.value = out->get_element(out_vertex_id);
+		//out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,
 				edge_data);
 		ptr += next;
@@ -144,6 +143,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 
 	char * ptr;
 	char * last_ptr;
+	LOG (INFO) << "Testing code";
 
 	ptr = stream->current_ptr;
 	last_ptr = stream->last_ptr;
@@ -151,9 +151,9 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 		in_vertex.id = in_vertex_id = *((IdType*) ptr);
 		out_vertex_accumulator.id = out_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
 		/*if(this->worker->load_vertex_data)*/
-		in_vertex.value = in->get_element(in_vertex_id);
+		//in_vertex.value = in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
-		out_vertex_accumulator.value = out->get_element(out_vertex_id);
+		//out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,edge_data);
 		ptr += next;
 	}

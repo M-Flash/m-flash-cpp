@@ -32,30 +32,30 @@ namespace mflash{
 
 
         inline void before_iteration(Matrix<E, IdType> &matrix) {
-          int64 vertex_count = matrix.size();
+          V vertex_count = (V) matrix.size();
           counts = new V[vertex_count];
           sets = new V[vertex_count];
 
-          for(int64 i = 0; i < vertex_count; i++){
+          for(V i = 0; i < vertex_count; i++){
               counts[i] = 1;
               sets[i] = i;
           }
         }
 
-        inline void after_iteration(MatrixWorker<E, IdType> &worker){
-         int64 vertex_count = worker.get_in_array()->size();
-         for(int64 i = 0; i < vertex_count; i++){
+        inline void after_iteration(Matrix<E, IdType> &matrix){
+         V vertex_count = (V)matrix.size();
+         for(V i = 0; i < vertex_count; i++){
              sets[i] = find(i);
          }
         }
-        inline void run(Matrix<E, IdType> &matrix){
+        inline void run(Matrix<E, IdType> &matrix, PrimitiveVector<V, IdType> &vector){
           before_iteration(matrix);
           MappedStream stream(get_block_file(matrix.get_file(),0,0));
           char * ptr = stream.current_ptr;
           char * last_ptr = stream.last_ptr;
           while(ptr < last_ptr){
-              int64 setSrc = find(*( (int*)ptr));
-              int64 setDst = find(*( (int*)ptr+4));
+            IdType setSrc = find(*( (IdType*)ptr));
+            IdType setDst = find(*( (IdType*)ptr+sizeof(IdType)));
 
               // If in same component, nothing to do, otherwise, Unite
               if (setSrc != setDst) {
@@ -69,9 +69,14 @@ namespace mflash{
                       counts[setDst] += counts[setSrc];
                   }
               }
-              ptr+=8;
+              ptr+=(sizeof(IdType)<<1);
           }
           stream.close_stream();
+
+          after_iteration(matrix);
+          LOG(INFO)<<matrix.size();
+          vector.resize(matrix.size());
+          vector.store_region(0, matrix.size() , sets);
         }
     };
 
@@ -101,8 +106,8 @@ namespace mflash{
       }
       inline void initialize(MatrixWorker<E, IdType>  &worker,Element<V, IdType> &destination){}
       inline void gather(MatrixWorker<E, IdType> &worker, Element<V, IdType> &in_element, Element<V, IdType> &out_element, E &edge_data){
-        int64 setDst = find(out_element.id);
-        int64 setSrc = find(in_element.id);
+        V setDst = find(out_element.id);
+        V setSrc = find(in_element.id);
         // If in same component, nothing to do, otherwise, Unite
         if (setSrc != setDst) {
             if (counts[setSrc] > counts[setDst]) {
@@ -125,8 +130,8 @@ namespace mflash{
       inline bool is_applied(){return false;}
 
       inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {
-        int64 vertex_count = worker.get_matrix().size();
-        for(int64 i = 0; i < vertex_count; i++){
+        V vertex_count = (V)worker.get_matrix().size();
+        for(V i = 0; i < vertex_count; i++){
             sets[i] = find(i);
         }
       }
@@ -173,11 +178,11 @@ namespace mflash{
   class WCC{
     public:
     template <class V, class E, class IdType>
-    inline static void run(Matrix<E, IdType> &matrix, PrimitiveVector<V, IdType> &vector, bool iterative=false){
+    inline static void run(Matrix<E, IdType> &matrix, PrimitiveVector<V, IdType> &vector, bool iterative=false, int niters=-1){
        int iteration = 0;
  	   set_conf("elementsize", to_string(2 * sizeof(V)));
        matrix.load();
-       LOG(INFO) << "WEAK CONNECTED COMPONENT STARTED"<<endl;
+       //LOG(INFO) << "WEAK CONNECTED COMPONENT STARTED"<<endl;
        if(matrix.get_elements_by_block() <= matrix.size() || iterative){
            Matrix<E, IdType> m = matrix.transpose();
            LOG(INFO) << "ITERATIVE WEAK CONNECTED COMPONENT STARTED"<<endl;
@@ -189,15 +194,16 @@ namespace mflash{
                LOG(INFO) << "ITERATION "<< iteration++ <<endl;
                m = m.transpose();
                algorithm.initialize_ = false;
-           }while(algorithm.state);
+               niters--;
+           }while(algorithm.state && niters != 0);
            LOG(INFO) << "WEAK CONNECTED COMPONENT FINISHED"<<endl;
        }else{
-           LOG(INFO) << "UNION-FIND WEAK CONNECTED COMPONENT STARTED"<<endl;
-           /*PrimitiveUnionFindOperator<V, E> algorithm;
-           algorithm.run(matrix);*/
-           WCCAlgorithmUnionFindOperator<V, E, IdType> algorithm;
-           matrix.operate(algorithm, vector, vector/*, false,false*/);
-           LOG(INFO) << "UNION-FIND WEAK CONNECTED COMPONENT FINISHED"<<endl;
+           LOG(INFO) << "UNION-FIND CONNECTED COMPONENT STARTED"<<endl;
+           PrimitiveUnionFindOperator<V, E, IdType> algorithm;
+           algorithm.run(matrix, vector);
+           //WCCAlgorithmUnionFindOperator<V, E, IdType> algorithm;
+           //matrix.operate(algorithm, vector, vector/*, false,false*/);
+           LOG(INFO) << "UNION-FIND CONNECTED COMPONENT FINISHED"<<endl;
        }
      }
   };

@@ -13,8 +13,18 @@ using namespace mflash;
 
 int main(int argc, char ** argv){
 	mflash_init(argc, argv);
-	Matrix<EmptyField, int> matrix ("/run/media/hugo/data/datasets/twitter");
-	PrimitiveVector<int, int> pvector("/run/media/hugo/data/datasets/wcc");
-	WCC::run(matrix, pvector, true);
+	/* Parameters */
+    	std::string filename = 	get_option_string("file"); // Base filename
+	int iterative  = 	get_option_int("iterative", 0);
+	int niters = 		get_option_int("niters", -1);
+
+	niters = (niters == 0? 1: niters);
+
+    	std::string wcc = get_parent_directory(filename) + "wcc";
+
+	Matrix<EmptyField, int> matrix (filename);
+	matrix = matrix.transpose();
+	PrimitiveVector<int, int> pvector(wcc);
+	WCC::run(matrix, pvector, iterative != 0, niters);
 	return 0;
 }

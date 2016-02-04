@@ -38,7 +38,7 @@ int main(int argc, char* argv[]){
 */
 
 	//LiveJournal
-	std::string graph_file = "/data/datasets/test";
+	std::string graph_file = "/data/hugo-data/hugo-others/datasets/test";
 	std::string format = "adjlist2";
 
 

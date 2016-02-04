@@ -34,6 +34,10 @@ example_apps/%: example_apps/%.cpp $(HEADERS)
 	@mkdir -p bin/$(@D)
 	$(CPP) $(CPPFLAGS) -Iexample_apps/ $@.cpp -o bin/$@ $(LINKERFLAGS)
 	
+debug_example_apps/%: 
+	@mkdir -p bin/
+	$(CPP) $(CPPFLAGS-DEBUG) -I. example_apps/${SELECTED_FILE}.cpp -o bin/${SELECTED_FILE} $(LINKERFLAGS)
+
 
 src/%: src/%.cpp $(HEADERS)
 	@mkdir -p bin/
