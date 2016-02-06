@@ -117,7 +117,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITH
 		/*if(this->worker->load_vertex_data)*/
 		//in_vertex.value = in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
-		//out_vertex_accumulator.value = out->get_element(out_vertex_id);
+		out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,
 				edge_data);
 		ptr += next;
@@ -153,7 +153,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 		/*if(this->worker->load_vertex_data)*/
 		//in_vertex.value = in->get_element(in_vertex_id);
 		/*if(this->worker->load_dest_data) */
-		//out_vertex_accumulator.value = out->get_element(out_vertex_id);
+		out_vertex_accumulator.value = out->get_element(out_vertex_id);
 		algorithm.gather(*worker, in_vertex, out_vertex_accumulator,edge_data);
 		ptr += next;
 	}
