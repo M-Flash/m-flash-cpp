@@ -22,7 +22,7 @@ SOURCE_FILE = $(addsuffix .cpp,$(FILE_PATH))
 
 
 all: apps
-apps: build/example_apps/lancsosso build/example_apps/pagerank build/example_apps/wcc
+apps: build/project/example_apps/lancsosso.cpp build/project/example_apps/pagerank.cpp build/project/example_apps/wcc.cpp
 
 echo/%: 
 	echo bin/$(@F)
