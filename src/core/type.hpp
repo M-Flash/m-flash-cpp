@@ -8,7 +8,8 @@
 #ifndef MFLASH_CPP_CORE_TYPE_HPP_
 #define MFLASH_CPP_CORE_TYPE_HPP_
 
-typedef long long int64;
+typedef unsigned int int32;
+typedef unsigned long long int64;
 
 namespace mflash {
 
