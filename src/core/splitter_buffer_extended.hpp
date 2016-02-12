@@ -46,7 +46,7 @@ SplitterBufferExtended<IdType>::SplitterBufferExtended(std::string graph, int64 
 
 	sparse_block = new bool[this->partitions];
 
-	for(int i = 0; i < this->partitions -1; i++){
+	for(int32 i = 0; i < this->partitions -1; i++){
 		sparse_block[i] = block_types[i] == BlockType::SPARSE;
 	}
 

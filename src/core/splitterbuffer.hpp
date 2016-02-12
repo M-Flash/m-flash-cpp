@@ -247,7 +247,7 @@ void SplitterBuffer<IdType>::split(){
 	partition_offset_positions[0] = 0;
 
 	//LOG(INFO) << "Base ptr " << (int64) base_ptr;
-	for(int i = 1 ; i <= partitions; i++){
+	for(int32 i = 1 ; i <= partitions; i++){
 		partition_initial_positions[i] = partition_initial_positions[i-1] + edge_size * partition_counters[i-1];
 		partition_offset_positions[i] = partition_initial_positions[i];
 	//	LOG(INFO) << "partitions ptr " <<  (int64)partition_offset_positions[i];
@@ -310,7 +310,7 @@ void SplitterBuffer<IdType>::split(){
 
 	char* offset = base_ptr;
 	//writing partitions to disk
-	for(int i = 0 ; i < partitions; i++){
+	for(int32 i = 0 ; i < partitions; i++){
 		if(partition_counters[i] == 0){
 			continue;
 		}

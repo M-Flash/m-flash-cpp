@@ -28,7 +28,7 @@ echo/%:
 	echo bin/$(@F)
 
 clean:
-	@rm -rf bin/*
+	@rm -rf bin/* 
 
 debug/%: $(SOURCE_FILE) $(HEADERS) 
 	@mkdir -p bin/$(dir $(FILE_PATH))

@@ -308,7 +308,7 @@ void MatrixWorker<E, IdType>::clean_fields() {
 		delete destination_pointer;
 	}
 
-	for (int i = 0; i < field_count; i++) {
+	for (int32 i = 0; i < field_count; i++) {
 		array_pointers[i]->free_memory();
 	}
 
@@ -370,7 +370,7 @@ template<class E, class IdType>
 template<class VSource, class VDestination, class MALGORITHM>
 void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 	const int64 elements = matrix->size();
-	int64 vertices_by_partition = matrix->get_elements_by_block();
+	const int64 vertices_by_partition = matrix->get_elements_by_block();
 //	vertices_by_partition = vertices_by_partition == 0 ? matrix->get_elements_by_block() : vertices_by_partition;
 
 	matrixProperties = matrix->get_matrix_properties();
@@ -406,7 +406,7 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 		//block_id = block.get_row() * matrixProperties.partitions + block.get_col();
 
 		source_offset = block.get_col() * vertices_by_partition;
-		source_limit = min(source_offset + vertices_by_partition, elements - source_offset)- 1;
+		source_limit = source_offset+ min(source_offset + vertices_by_partition, elements - source_offset)- 1;
 
 		if (block.get_row() != row) {
 			if (row != -1) {
@@ -420,12 +420,12 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 			row = block.get_row();
 
 			destination_offset = block.get_row()*vertices_by_partition;
-			destination_limit = min(destination_offset + vertices_by_partition, elements-destination_offset) -1;
+			destination_limit = destination_offset+min(destination_offset + vertices_by_partition, elements-destination_offset) -1;
 
 
 			if(algorithm.is_destination_loaded() && default_destination != 0) {
 				LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES";
-				load_fields<VSource, VDestination>(FieldType::DESTINATION, source_offset);
+				load_fields<VSource, VDestination>(FieldType::DESTINATION, destination_offset);
 				LOG (INFO) << "--- OUT-ELEMENT STATES BEETWEEN " << destination_offset << " AND " << destination_limit << " LOADED";
 			}else{
 				LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES OMITTED";
@@ -544,7 +544,7 @@ void MatrixWorker<E, IdType>::preprocessing() {
 				source_offset = block.get_col() * elements_partitions;
 				LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
 				load_fields<VSource, VDestination>(FieldType::SOURCE,source_offset);
-				LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << elements_partitions + elements_partitions<< " LOADED";
+				LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << source_offset  + elements_partitions<< " LOADED";
 				in_loaded = true;
 			}
 

@@ -2,7 +2,7 @@
 
 ## Dependencies
 * [EasyLogging++](http://easylogging.muflihun.com). It is included in M-Flash
-* [Boost](http://www.boost.org)
+* [Boost](http://www.boost.org) (CentOS yum install boost boost-devel)
 * [Eigen3](http://eigen.tuxfamily.org/). It is required for Lanczos Selective Orthogonalization
 
 ## Examples

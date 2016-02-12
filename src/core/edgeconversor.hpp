@@ -37,6 +37,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 
 	const char comment = '#';
 	const char comment2 = '%';
+	const char comment3 = ' ';
 	const char end_line = '\n';
 	const char end_line2 = '\r';
 	//char separator = ' ';
@@ -50,14 +51,14 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 	const int64 MEGABYTE = 1024 * 1024;
 	const int64 STEP_INFO = 500 * MEGABYTE;
 */
-
+	bool newline = true;
 	while(in.has_remain()){
 		char b = in.next_char();
 		/*if( (in.current_ptr-in.ptr) % STEP_INFO ==0){
 			LOG(INFO)<<"Processed: " << (in.current_ptr-in.ptr) / MEGABYTE << "MB";
 		}*/
 		//removing comment line
-	  if(b == comment || b == comment2){
+	  if(newline && (b == comment || b == comment2 || b == comment3)){
 		while(b != end_line){
 		  b = in.next_char();
 		}
@@ -69,6 +70,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 		in.set_position(in.position()- sizeof(char));
 		continue;
 	  }
+	  newline = false;
 	  if (b == separator || b == separator2 || b == separator3){
 		if(!isInVertice && !isQuantity){ //
 			splitter.add(v1, v2, &value);
@@ -80,6 +82,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 		continue;
 	  }
 		if (b == end_line || b == end_line2){
+			newline = true;
 			b = in.next_char();
 			//when the line content \r\n
 			while( b == end_line || b==end_line2){

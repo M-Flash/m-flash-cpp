@@ -30,8 +30,8 @@ const int64 DEFAULT_MEMORY_SIZE = 4 * 1073741824L; //4GB
 const int64 DEFAULT_ELEMENT_SIZE = 2 *sizeof(float); //4GB
 
 
-const int MFLASH_MATRIX_THREADS = 1;
-const int MFLASH_VECTOR_THREADS = 1;
+const int32 MFLASH_MATRIX_THREADS = 1;
+const int32 MFLASH_VECTOR_THREADS = 1;
 const double MAPPING_PERCENTAGE = 0.1;
 
 const string FILE_SEPARATOR = "/";
@@ -201,8 +201,8 @@ void update_matrix_properties(std::string file_graph, MatrixProperties &properti
 	file << properties.partitions<< std::endl;
 	file << properties.vertices_partition<< std::endl;
 
-	for(int i = 0 ; i<properties.partitions ; i++){
-		for(int j = 0 ; j<properties.partitions ; j++){
+	for(int32 i = 0 ; i<properties.partitions ; i++){
+		for(int32 j = 0 ; j<properties.partitions ; j++){
 			file<<properties.edges_by_block[i*properties.partitions  + j];
 			file<<std::endl;
 		}
@@ -235,8 +235,8 @@ MatrixProperties load_matrix_properties(std::string file_graph) {
 	file >> properties.partitions;
 	file >> properties.vertices_partition;
 	properties.edges_by_block = new int64[properties.partitions * properties.partitions];
-	for(int i = 0 ; i<properties.partitions ; i++){
-		for(int j = 0 ; j<properties.partitions ; j++){
+	for(int32 i = 0 ; i<properties.partitions ; i++){
+		for(int32 j = 0 ; j<properties.partitions ; j++){
 			file>>properties.edges_by_block[i*properties.partitions  + j];
 		}
 	}
@@ -335,10 +335,10 @@ inline BlockType getBlockType(int64 partitions, int64 vertices_by_partition, int
 void quicksort(double values[], int64 indexes[], int64 left, int64 right,
 		bool asc) {
 	double pivot = values[left + (right - left) / 2];
-	int i = left;
-	int j = right;
+	int32 i = left;
+	int32 j = right;
 
-	int operator_ = asc ? 1 : -1;
+	int32 operator_ = asc ? 1 : -1;
 
 	while (i <= j) {
 		while (operator_ * values[i] < operator_ * pivot) {
@@ -383,8 +383,8 @@ int64* sort_and_get_indexes(int64 n, double values[], bool asc) {
 }
 
 /*
-int stick_this_thread_to_core(int core_id) {
-	int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+int32 stick_this_thread_to_core(int32 core_id) {
+	int32 num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 	if (core_id < 0 || core_id >= num_cores)
 		return EINVAL;
 

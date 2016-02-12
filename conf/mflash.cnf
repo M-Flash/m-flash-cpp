@@ -2,6 +2,10 @@
 # Commandline parameters override values in the configuration file.
 # execthreads=2
 # configuration for 4GB
-memorysize = 8589934592
-#filetype = adjlist
+memorysize = 1073741824
+filetype = edgelist
 edgeseparator = 	
+file = /data/hugo-data/hugo-others/datasets/yahoo
+iterative = 0
+niters = 1
+#check_ids = 1

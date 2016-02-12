@@ -32,6 +32,10 @@ namespace mflash{
 			MappedStream *stream;
 
 			template <class MALGORITHM>
+			bool check_ids(MALGORITHM &algorithm, int64 step);
+
+
+			template <class MALGORITHM>
 			void dense_transpose(MALGORITHM &algorithm, int64 step);
 
 			template <class MALGORITHM>
@@ -67,28 +71,84 @@ namespace mflash{
 
 		int step = 0;
 
-		if(block->isDense()){
-		  //this->stream->set_position (this->properties->offset + bytes * this->id);
-		  if(this->worker->matrix->is_transpose()){
-			  LOG (INFO) << "--- PROCESSING DENSE BLOCK IN TRANSPOSE MODE";
-			  dense_transpose(algorithm, step);
-		  }else{
-			  LOG (INFO) << "--- PROCESSING DENSE BLOCK IN NORMAL MODE";
-			  dense_normal(algorithm, step);
-		  }
+		if (get_option_int("check_ids", 0) == 1){
+		  check_ids(algorithm, step);
 		}else{
-		  if(this->worker->matrix->is_transpose()){
-			  LOG (INFO) << "--- PROCESSING SPARSE BLOCK IN TRANSPOSE MODE";
-			  sparse_transpose(algorithm, step);
+
+		  if(block->isDense()){
+		    //this->stream->set_position (this->properties->offset + bytes * this->id);
+		    if(this->worker->matrix->is_transpose()){
+			    LOG (INFO) << "--- PROCESSING DENSE BLOCK IN TRANSPOSE MODE";
+			    dense_transpose(algorithm, step);
+		    }else{
+			    LOG (INFO) << "--- PROCESSING DENSE BLOCK IN NORMAL MODE";
+			    dense_normal(algorithm, step);
+		    }
 		  }else{
-			  LOG (INFO) << "--- PROCESSING SPARSE BLOCK IN NORMAL MODE";
-			  sparse_normal(algorithm, step);
+		    if(this->worker->matrix->is_transpose()){
+			    LOG (INFO) << "--- PROCESSING SPARSE BLOCK IN TRANSPOSE MODE";
+			    sparse_transpose(algorithm, step);
+		    }else{
+			    LOG (INFO) << "--- PROCESSING SPARSE BLOCK IN NORMAL MODE";
+			    sparse_normal(algorithm, step);
+		    }
 		  }
 		}
-
 		this->stream->close_stream();
 		delete stream;
 	}
+
+template <class E, class IdType, class VSource, class VDestination>
+template <class MALGORITHM>
+bool EdgeListThread<E, IdType, VSource, VDestination>::check_ids(MALGORITHM &algorithm, int64 step) {
+      const int64 elements = worker->matrix->size();
+      const int64 vertices_by_partition = worker->matrix->get_elements_by_block();
+
+      int64 source_offset;
+      int64 destination_offset;
+      int64 source_limit;
+      int64 destination_limit;
+      int64 next;
+
+
+      if(block->isDense()){
+	next = getEdgeSize<E, IdType>();
+      }else{
+	next = getEdgeSize<E, IdType>() + worker->source_size();
+      }
+
+      source_offset = block->get_col() * vertices_by_partition;
+      destination_offset = block->get_row()*vertices_by_partition;
+      source_limit =source_offset + min(source_offset + vertices_by_partition, elements - source_offset)- 1;
+      destination_limit = destination_offset + min(destination_offset + vertices_by_partition, elements-destination_offset) -1;
+
+      IdType in_vertex_id;
+      IdType out_vertex_id;
+      char * ptr;
+      char * last_ptr;
+      LOG (INFO) << "VERIFING IDS FOR ALL EDGES WITHIN BLOCKS";
+      ptr = stream->current_ptr;
+      last_ptr = stream->last_ptr;
+      bool transpose =  this->worker->matrix->is_transpose();
+      while (ptr < last_ptr) {
+	    if(!transpose){
+	      in_vertex_id = *((IdType*) ptr);
+	      out_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
+	    }else{
+	      out_vertex_id = *((IdType*) ptr);
+	      in_vertex_id = *((IdType*) (ptr + sizeof(IdType)));
+	    }
+
+	    if(in_vertex_id < source_offset || in_vertex_id >  source_limit ||
+		out_vertex_id < destination_offset || out_vertex_id >  destination_limit ){
+		LOG (ERROR) << "Edge ("<< in_vertex_id << "," << out_vertex_id <<") out of bounds within the block" << block->get_file() <<". "
+			    << "Input interval("<<source_offset<<","<< source_limit<<")."<< "Output interval("<<destination_offset<<","<< destination_limit<<").";
+		return false;
+	    }
+	    ptr += next;
+      }
+      return true;
+}
 
 template <class E, class IdType, class VSource, class VDestination>
 template <class MALGORITHM>
@@ -106,9 +166,11 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_transpose(MALGORITH
 
 	int64 next = getEdgeSize<E, IdType>();
 
+
+
 	char * ptr;
 	char * last_ptr;
-	LOG (INFO) << "Testing code";
+	//LOG (INFO) << "Testing code";
 	ptr = stream->current_ptr;
 	last_ptr = stream->last_ptr;
 	while (ptr < last_ptr) {
@@ -143,7 +205,7 @@ void EdgeListThread<E, IdType, VSource, VDestination>::dense_normal(MALGORITHM &
 
 	char * ptr;
 	char * last_ptr;
-	LOG (INFO) << "Testing code";
+	//LOG (INFO) << "Testing code";
 
 	ptr = stream->current_ptr;
 	last_ptr = stream->last_ptr;

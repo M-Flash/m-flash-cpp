@@ -94,7 +94,9 @@ template <class V, class E, class IdType>
 
       //creating degree file
       if(!exist_file(degree_file)){
+	  LOG (INFO) << "OUT-DEGREE MEASUREMENT STARTED";
           matrix.operate(degree_operator, degree_vec, degree_vec);
+          LOG (INFO) << "OUT-DEGREE MEASUREMENT FINISHED";
       }
       Matrix<E, IdType> m = matrix.transpose();
       LOG (INFO) << "PR  = 1/N";

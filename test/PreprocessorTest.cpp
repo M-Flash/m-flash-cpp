@@ -4,9 +4,11 @@
 
 using namespace mflash;
 int main(int argc, char* argv[]){
-	mflash_init(argc, argv);
+	std::cout<<sizeof(int32)<<" "<<sizeof(int64)<<" "<<sizeof(int)<<std::endl;
+
+	//mflash_init(argc, argv);
 	//std::cout<<mflash::get_config_option_string("filetype", "ed")<<std::endl;
-	std::cout<<mflash::get_config_option_string("memorysize")<<std::endl;
+	//std::cout<<mflash::get_config_option_string("memorysize")<<std::endl;
 	//TYNY GRAPH
 /*
 	std::string graph_file = "/hugo/datasets/tiny-graph/tiny-graph";
@@ -38,10 +40,10 @@ int main(int argc, char* argv[]){
 */
 
 	//LiveJournal
-	std::string graph_file = "/data/hugo-data/hugo-others/datasets/test";
+/*	std::string graph_file = "/data/hugo-data/hugo-others/datasets/test";
 	std::string format = "adjlist2";
 
 
-	mflash::convert<EmptyField, int>(graph_file, sizeof(float), format);
+	mflash::convert<EmptyField, int>(graph_file, sizeof(float), format);*/
 	return 0;
 }
