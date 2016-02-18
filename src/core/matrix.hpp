@@ -45,7 +45,7 @@ class MatrixInterface {
 template<class E, class IdType>
 class Matrix { //: MatrixInterface{
 
-	string file;
+	std::string file;
 	//int64 n;
 	//int64 m;
 	bool transpose_;
@@ -57,14 +57,17 @@ class Matrix { //: MatrixInterface{
 
 	//BlockType get_block_type(int block_count, int64 vertex_size_bytes,int64 edge_size_bytes);
 public:
-	Matrix(string file, bool transpose = false, Mode mode = Mode::VECTOR_REPLICATION/*, int64 size, int64 element_by_block*/);
+	Matrix(std::string file, bool transpose = false, Mode mode = Mode::VECTOR_REPLICATION/*, int64 size, int64 element_by_block*/);
 	//Matrix(string file, int64 size, bool transpose, int64 element_by_block, Mode mode);
 	int64 size() {
 		return properties != NULL? properties->vertices : 0;//max(n, m);
 	}
+
+	~Matrix();
+
 	Matrix<E, IdType> transpose();
 
-	string get_file() {
+	std::string get_file() {
 		return file;
 	}
 	bool is_transpose() {
@@ -74,10 +77,8 @@ public:
 		return sizeof(IdType);
 	}
 
-	MatrixProperties get_matrix_properties() {
-		MatrixProperties properties;
-		properties = *this->properties;
-		return properties;
+	MatrixProperties& get_matrix_properties() {
+		return *this->properties;
 	}
 
 	MatrixProperties has_sparse_blocks() {
@@ -87,7 +88,7 @@ public:
 		int n = properties->partitions;
 		for(int i = 0 ; i < n; i++){
 			for(int j = 0 ; j < n; j++){
-				if(BlockType::SPARSE == getBlockType<E,IdType>(n, properties->vertices_partition, properties->getEdgesBlock(i, j))){
+				if(BlockType::SPARSE == getBlockType<E,IdType>(n, properties->vertices_partition, properties->getEdgesBlock(i, j), source_size())){
 					return true;
 				}
 			}
@@ -98,8 +99,7 @@ public:
 	void set_matrix_properties(MatrixProperties &newProperties){
 		if(properties != NULL) delete properties;
 
-		properties = new MatrixProperties();
-		*properties = newProperties;
+		properties = new MatrixProperties(newProperties);
 	}
 
 
@@ -113,13 +113,21 @@ public:
 	int size_edge();
 	int size_edge_data();
 
-	bool add_field(FieldType type, string fieldname, AbstractVector &vector) {
+	bool add_field(FieldType type, std::string fieldname, AbstractVector &vector) {
 		return worker->add_field(type, fieldname, vector);
 	}
 	//bool add_field(FieldType type, string fieldname, AbstractVector *vector){return worker->add_field(type, fieldname, *vector);}
 
-	bool remove_field(FieldType type, string fieldname) {
+	bool remove_field(FieldType type, std::string fieldname) {
 		return worker->remove_field(type, fieldname);
+	}
+
+	int64 source_size(){
+		return worker->source_size();
+	}
+
+	int64 destination_size(){
+		return worker->destination_size();
 	}
 
 	template<class MALGORITHM, class VDestination, class VSource>
@@ -146,7 +154,7 @@ public:
 
 //Matrix<E>::Matrix(string filebool transpose, int64 size, int64 element_by_block, Mode mode){
 template<class E, class IdType>
-Matrix<E, IdType>::Matrix(string graph, bool transpose, Mode mode) {
+Matrix<E, IdType>::Matrix(std::string graph, bool transpose, Mode mode) {
 	this->file = graph;
 	this->transpose_ = !transpose;
 	this->mode = mode;
@@ -164,10 +172,25 @@ Matrix<E, IdType>::Matrix(string graph, bool transpose, Mode mode) {
 }
 
 template<class E, class IdType>
+Matrix<E, IdType>::~Matrix() {
+  if(worker != NULL){
+     delete worker;
+     worker = NULL;
+  }
+  if(properties != NULL){
+    delete properties;
+    properties = NULL;
+  }
+}
+
+template<class E, class IdType>
 Matrix<E, IdType> Matrix<E, IdType>::transpose() {
 	Matrix <E,IdType > t(*this);
 	t.transpose_ = !t.transpose_;
 	t.worker = new MatrixWorker<E, IdType>(t);
+	if(properties != NULL){
+	  t.properties = new MatrixProperties(*properties);
+	}
 	return (t);
 }
 
@@ -268,7 +291,7 @@ void Matrix<E, IdType>::load(){
 	if(properties != NULL && properties->vertices_partition == getVeticesByPartition(element_size)){
 		LOG(INFO) << "Graph formatting ommitted because current partitioning is compatible.";
 	}else{
-		MatrixProperties properties = convert<E,IdType>(file, validateElementSize(element_size));
+		MatrixProperties properties = convert<E,IdType>(file, validateElementSize(element_size), validateVertexSize(max(source_size(), destination_size())));
 		set_matrix_properties(properties);
 	}
 	//convert<E, IdType>(file, worker->element_size());

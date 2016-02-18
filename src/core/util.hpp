@@ -8,6 +8,7 @@
 #ifndef MFLASH_CPP_CORE_UTIL_HPP_
 #define MFLASH_CPP_CORE_UTIL_HPP_
 
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -28,6 +29,7 @@ namespace mflash {
 
 const int64 DEFAULT_MEMORY_SIZE = 4 * 1073741824L; //4GB
 const int64 DEFAULT_ELEMENT_SIZE = 2 *sizeof(float); //4GB
+const int64 DEFAULT_VERTEX_SIZE = sizeof(float); //4GB
 
 
 const int32 MFLASH_MATRIX_THREADS = 1;
@@ -112,6 +114,12 @@ string get_partition_file(string graph, int64 partition_id, string prefix = "") 
 	file<< partition_id << ".partition";
 	return file.str();
 }
+string get_transpose_prefix() {
+	std::stringstream file;
+	file << "transpose";
+	return file.str();
+}
+
 string get_in_degree_file(string graph) {
 	std::stringstream file;
 	file << get_graph_directory(graph);
@@ -277,6 +285,13 @@ inline int64 validateElementSize(int64 element_size) {
 	return element_size;
 }
 
+inline int64 validateVertexSize(int64 vertex_size) {
+	if(vertex_size == 0){
+		return get_config_option_long("vertexsize", DEFAULT_VERTEX_SIZE);
+	}
+	return vertex_size;
+}
+
 inline int64 getVeticesByPartition(int64 element_size) {
 	element_size = validateElementSize(element_size);
 	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (element_size);
@@ -292,18 +307,27 @@ inline int64 getVeticesByPartition(int64 element_size) {
  *
  */
 
-template<class E, class IdType>
+/*template<class E, class IdType>
 inline double getBlockRatio(int64 partitions, int64 vertices_by_partition, int64 edges) {
-	return ((double)1)/partitions + ( ((double)2) * edges * getEdgeSize<E, IdType>()/ vertices_by_partition);
+	//return ((double)1)/partitions + ( ((double)2) * edges * getEdgeSize<E, IdType>()/ vertices_by_partition);
+    return ((double)1)/partitions + ( ((double)2) * edges * getEdgeSize<E, IdType>()/ vertices_by_partition);
+}*/
+
+template<class E, class IdType>
+inline double getBlockRatio(int64 partitions, int64 vertices_by_partition, int64 edges, int64 source_size) {
+    return ((double)1)/partitions + ( (double)2 * edges /vertices_by_partition * (1 + getEdgeSize<E, IdType>()/(double)source_size));
 }
 
 
 
 
+
 template<class E, class IdType>
-inline BlockType getBlockType(int64 partitions, int64 vertices_by_partition, int64 edges) {
-	double ratio = getBlockRatio<E, IdType>(partitions, vertices_by_partition, edges);
-	return ratio < 1.0 ? BlockType::SPARSE : BlockType::DENSE;
+inline BlockType getBlockType(int64 partitions, int64 vertices_by_partition, int64 edges, int64 source_size) {
+	double ratio = getBlockRatio<E,IdType>(partitions, vertices_by_partition, edges, source_size);
+	LOG(INFO) << ratio;
+	//return ratio < 1.0 ? BlockType::SPARSE : BlockType::DENSE;
+	return BlockType::DENSE;
 }
 
 

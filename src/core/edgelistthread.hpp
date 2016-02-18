@@ -143,6 +143,7 @@ bool EdgeListThread<E, IdType, VSource, VDestination>::check_ids(MALGORITHM &alg
 		out_vertex_id < destination_offset || out_vertex_id >  destination_limit ){
 		LOG (ERROR) << "Edge ("<< in_vertex_id << "," << out_vertex_id <<") out of bounds within the block" << block->get_file() <<". "
 			    << "Input interval("<<source_offset<<","<< source_limit<<")."<< "Output interval("<<destination_offset<<","<< destination_limit<<").";
+		assert(false);
 		return false;
 	    }
 	    ptr += next;

@@ -76,6 +76,7 @@ template <class V, class E, class IdType>
 	  static inline void run(Matrix<E, IdType> &matrix, PrimitiveVector<V, IdType> &destination, int iterations){
 
 	  set_conf("elementsize", to_string(2 * sizeof(V)));
+	  set_conf("vertexsize", to_string(sizeof(V)));
 	  matrix.load();
 
 	  destination.resize(matrix.size());

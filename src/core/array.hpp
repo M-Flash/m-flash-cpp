@@ -393,7 +393,7 @@ template<class V, class IdType> inline ThreadDataType<V, IdType>::ThreadDataType
 }
 
 template<class V, class IdType> inline V ZeroThreadDataType<V, IdType>::call() {
-	V value;
+	V value = V();
 	ZeroOperator<V, IdType>* operator_ = (ZeroOperator<V, IdType>*) (this->operator_);
 	Element<V, IdType> element;
 
@@ -410,7 +410,7 @@ template<class V, class IdType> inline V ZeroThreadDataType<V, IdType>::call() {
 
 template<class V, class IdType> inline V UnaryThreadDataType<V, IdType>::call() {
 	UnaryOperator<V, IdType>* operator_ = (UnaryOperator<V, IdType>*) (this->operator_);
-	V value;
+	V value = V();
 	Element<V, IdType> element;
 	Element<V, IdType> out;
 
@@ -435,7 +435,7 @@ template<class V, class IdType> inline V UnaryThreadDataType<V, IdType>::call() 
 template<class V, class IdType> inline V BinaryThreadDataType<V, IdType>::call() {
 	BinaryOperator<V, IdType>* operator_ = (BinaryOperator<V, IdType>*) (this->operator_);
 
-	V value;
+	V value = V();
 	Element<V, IdType> element1;
 	Element<V, IdType> element2;
 	Element<V, IdType> out;

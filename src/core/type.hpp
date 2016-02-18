@@ -41,7 +41,7 @@ enum GraphFormatterMode {
 };
 
 enum FieldType {
-	SOURCE, DESTINATION
+	SOURCE, DESTINATION, BOTH
 };
 
 enum BlockType {
@@ -62,14 +62,45 @@ struct MatrixProperties{
 	int64 vertices_partition;
 	int64 *edges_by_block;
 
+	MatrixProperties(){
+	  vertices = 0;
+	  idSize = 0;
+	  partitions = 0;
+	  vertices_partition = 0;
+	  edges_by_block = NULL;
+	}
+
 	MatrixProperties(int64 vertices, int64 idSize, int64 partitions, int64 vertices_partition, int64 edges_by_block[]){
 		this->vertices = vertices;
 		this->idSize = idSize;
 		this->partitions = partitions;
 		this->vertices_partition = vertices_partition;
-		this->edges_by_block = edges_by_block;
+		this->edges_by_block = new int64[partitions * partitions];
+		memcpy(this->edges_by_block, edges_by_block, sizeof(int64) * partitions * partitions);
 	}
-	MatrixProperties(){}
+	MatrixProperties(const MatrixProperties &p): MatrixProperties(p.vertices, p.idSize, p.partitions, p.vertices_partition, p.edges_by_block){
+	}
+
+	MatrixProperties& operator= (const MatrixProperties &p){
+		vertices = p.vertices;
+		idSize = p.idSize;
+		partitions = p.partitions;
+		vertices_partition = p.vertices_partition;
+		if(edges_by_block != NULL){
+		  delete [] edges_by_block;
+		}
+		this->edges_by_block = new int64[partitions * partitions];
+		memcpy(this->edges_by_block, p.edges_by_block, sizeof(int64) * partitions * partitions);
+		return *this;
+	}
+
+	~MatrixProperties(){
+	  if(edges_by_block != NULL){
+	    delete [] edges_by_block;
+	    edges_by_block = NULL;
+	  }
+
+	}
 
 	int64 getEdgesBlock(int32 row, int32 col){
 		if(row >= 0 && row <partitions && col >= 0 && col <partitions){

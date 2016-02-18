@@ -71,7 +71,7 @@ public:
 	AbstractVector **vector_pointers;
 
 	template<class VSource, class VDestination>
-	void initialize_fields();
+	void initialize_fields(FieldType type = FieldType::BOTH);
 
 	void clean_fields();
 
@@ -259,8 +259,17 @@ inline int64 MatrixWorker<E, IdType>::elements_partition() {
 
 template<class E, class IdType>
 template<class VSource, class VDestination>
-void MatrixWorker<E, IdType>::initialize_fields() {
-	field_count = source_map.size() + destination_map.size();
+void MatrixWorker<E, IdType>::initialize_fields(FieldType type) {
+	field_count = 0;
+
+	if(type != FieldType::DESTINATION){
+	  field_count += source_map.size();
+	}
+	if(type != FieldType::SOURCE){
+	  field_count += destination_map.size();
+	}
+	//field_count = source_map.size() + destination_map.size();
+
 	value_pointers = new void*[field_count];
 	array_pointers = new GenericArray*[field_count];//(GenericArray*) malloc(sizeof(GenericArray) * field_count);//  new GenericArray[field_count];
 	vector_pointers = new AbstractVector*[field_count];
@@ -271,31 +280,31 @@ void MatrixWorker<E, IdType>::initialize_fields() {
 	int64 vertices_by_partition = matrix->get_elements_by_block();
 	int pos = 0;
 
-	if (default_source != 0) {
-		source_pointer = new Array<VSource, IdType>(vertices_by_partition);
+	if(type != FieldType::DESTINATION){
+	  if (default_source != 0) {
+		  source_pointer = new Array<VSource, IdType>(vertices_by_partition);
+	  }
+	  for (iter = source_map.begin(); iter != source_map.end(); iter++, pos++) {
+		  vpointer = iter->second;
+		  value_pointers[pos] = *(vpointer->pointer);
+		  array_pointers[pos] = new GenericArray(vpointer->vector->element_size(),
+				  vertices_by_partition);
+		  vector_pointers[pos] = vpointer->vector;
+	  }
 	}
+	if(type != FieldType::SOURCE){
+	  if (default_destination != 0) {
+		  destination_pointer = new Array<VDestination, IdType>(vertices_by_partition);
+	  }
+	  for (iter = destination_map.begin(); iter != destination_map.end(); iter++, pos++) {
+		  vpointer = iter->second;
+		  value_pointers[pos] = *(vpointer->pointer);
+		  array_pointers[pos] = new GenericArray(vpointer->vector->element_size(),
+				  vertices_by_partition);
+		  vector_pointers[pos] = vpointer->vector;
+	  }
 
-	if (default_destination != 0) {
-		destination_pointer = new Array<VDestination, IdType>(vertices_by_partition);
 	}
-
-	for (iter = source_map.begin(); iter != source_map.end(); iter++, pos++) {
-		vpointer = iter->second;
-		value_pointers[pos] = *(vpointer->pointer);
-		array_pointers[pos] = new GenericArray(vpointer->vector->element_size(),
-				vertices_by_partition);
-		vector_pointers[pos] = vpointer->vector;
-	}
-
-	for (iter = destination_map.begin(); iter != destination_map.end();
-			iter++, pos++) {
-		vpointer = iter->second;
-		value_pointers[pos] = *(vpointer->pointer);
-		array_pointers[pos] = new GenericArray(vpointer->vector->element_size(),
-				vertices_by_partition);
-		vector_pointers[pos] = vpointer->vector;
-	}
-
 }
 
 template<class E, class IdType>
@@ -406,7 +415,7 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 		//block_id = block.get_row() * matrixProperties.partitions + block.get_col();
 
 		source_offset = block.get_col() * vertices_by_partition;
-		source_limit = source_offset+ min(source_offset + vertices_by_partition, elements - source_offset)- 1;
+		source_limit = min(source_offset + vertices_by_partition, elements)- 1;
 
 		if (block.get_row() != row) {
 			if (row != -1) {
@@ -420,8 +429,7 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 			row = block.get_row();
 
 			destination_offset = block.get_row()*vertices_by_partition;
-			destination_limit = destination_offset+min(destination_offset + vertices_by_partition, elements-destination_offset) -1;
-
+			destination_limit = min(destination_offset + vertices_by_partition, elements) -1;
 
 			if(algorithm.is_destination_loaded() && default_destination != 0) {
 				LOG (INFO)<< "--- LOADING OUT-ELEMENT STATES";
@@ -456,6 +464,7 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 				LOG (INFO)<< "- PROCESSING SPARSE PARTITION "<< block.get_row();
 				EdgeListThread<E, IdType, VSource, VDestination> sparse_thread(*this, 0, sparseblock);
 				sparse_thread.call(algorithm);
+				delete_file(sparseblock.get_file());
 				LOG (INFO)<< "- END PROCESSING SPARSE PARTITION "<< block.get_row();
 			}else{
 				LOG (INFO)<< "- PROCESSING HAS BEEN OMITTED FOR SPARSE PARTITION "<< block.get_row() << " BECAUSE IT DOES NOT CONTAIN SPARSE BLOCKS";
@@ -524,46 +533,54 @@ void MatrixWorker<E, IdType>::preprocessing() {
 	BlockIterator<E,IdType> iterator(matrix, matrix->is_transpose() ? 1 : 0);
 
 	int64 elements_partitions = matrixProperties.vertices_partition;
-	int row = -1;
-	bool in_loaded = false;
+	//int row = -1;
+	//bool in_loaded = false;
 
+	initialize_fields<VSource, VDestination>(FieldType::SOURCE);
 	// only one field
-	int64 edge_size_extended = getEdgeSize<E, IdType>() + source_size();
-	SplitterBuffer<IdType> *splitter = new SplitterBuffer<IdType>(matrix->get_file(), edge_size_extended, matrixProperties.vertices_partition * vertex_size, matrixProperties.vertices_partition, false, "updates", 1*matrixProperties.partitions);
+	int64 edge_size_extended = getEdgeDataSize<E>() + source_size();
+	SplitterBuffer<IdType> *splitter = new SplitterBuffer<IdType>(matrix->get_file(), edge_size_extended, matrixProperties.vertices_partition * vertex_size, matrixProperties.vertices_partition, matrix->is_transpose(), "updates", matrixProperties.partitions);
 
 	int64 source_offset;
-	while (iterator.has_next()) {
-		Block block = iterator.next();
-		if (block.exist() && block.isSparse()) {
-			LOG (INFO)<< "- PRE-PROCESSING BLOCK "<< block.get_row() << " -> " << block.get_col();
-			if(row != block.get_row()) {
-				row = block.get_row();
-				in_loaded = false;
-			}
-			if(!in_loaded) {
-				source_offset = block.get_col() * elements_partitions;
-				LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
-				load_fields<VSource, VDestination>(FieldType::SOURCE,source_offset);
-				LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << source_offset  + elements_partitions<< " LOADED";
-				in_loaded = true;
-			}
 
-			/*
-			 * PROCESSING EDGES
-			 */
+	for( int32 i = 0; i < matrixProperties.partitions; i++){
+	   /*
+	    * PROCESSING EDGES
+	    */
+	    std::string block_file = get_partition_file(matrix->get_file(), i , matrix->is_transpose()? "transpose": "");
 
-			MappedStream stream(block.get_file());
-			IdType from, to;
+	    if(exist_file(block_file)){
+		    source_offset = i * elements_partitions;
+		    LOG (INFO)<< "--- LOADING IN-ELEMENT STATES";
+		    load_fields<VSource, VDestination>(FieldType::SOURCE,source_offset);
+		    LOG (INFO)<< "--- IN-ELEMENT STATES BEETWEEN " << source_offset << " AND " << source_offset  + elements_partitions<< " LOADED";
 
-			while(stream.has_remain()){
-				from = stream.next<IdType>();
-				to = stream.next<IdType>();
-				splitter->add(from, to, source_pointer != 0? source_pointer->get_element(from): 0);
-			}
-			stream.close_stream();
-			LOG (INFO)<< "- BLOCK "<< block.get_row() << " -> " << block.get_col() << " PRE-PROCESSED";
-		}
+		    LOG (INFO)<< "- PRE-PROCESSING OF SPARSE PARTITION "<< i;
+		    MappedStream stream(block_file);
+		    IdType from, to;
+
+		    if (!matrix->is_transpose()){
+		      while(stream.has_remain()){
+			  from = stream.next<IdType>();
+			  to = stream.next<IdType>();
+			  splitter->add(from, to, source_pointer != 0? source_pointer->get_element(from): 0);
+		      }
+		    }else{
+		      while(stream.has_remain()){
+			  to = stream.next<IdType>();
+			  from = stream.next<IdType>();
+			  splitter->add(to, from, source_pointer != 0? source_pointer->get_element(from): 0);
+		      }
+		    }
+
+		    stream.close_stream();
+
+		    LOG (INFO)<< "- END PRE-PROCESSING SPARSE PARTITION "<< i;
+	    }else{
+		    LOG (INFO)<< "- PRE-PROCESSING HAS BEEN OMITTED FOR SPARSE PARTITION "<< i << " BECAUSE IT DOES NOT EXISTS";
+	    }
 	}
+	clean_fields();
 	splitter->flush();
 	delete splitter;
 }

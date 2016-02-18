@@ -44,7 +44,7 @@ namespace mflash{
 			const static int DIRECTIONS = 4;
 			string file;
 			Matrix<E, IdType> *matrix;
-			MatrixProperties matrix_properties;
+			MatrixProperties *matrix_properties;
 
 			int partitions;
 			int direction;
@@ -74,9 +74,9 @@ namespace mflash{
 	template<class E, class IdType>
 	BlockIterator<E, IdType>::BlockIterator(Matrix<E, IdType> *matrix, int direction){
 		this->matrix = matrix;
-		this->matrix_properties = matrix->get_matrix_properties();
+		this->matrix_properties = &matrix->get_matrix_properties();
 		this->file = matrix->get_file();
-		this->partitions = matrix_properties.partitions;
+		this->partitions = matrix_properties->partitions;
 		this->direction = direction;
 
 		if(direction<0 || direction>=DIRECTIONS){
@@ -147,7 +147,7 @@ namespace mflash{
 			}
 			block_file = get_block_file(this->file, row, col);
 
-			Block block(block_file, get_col(), get_row(),  getBlockType<E,IdType>(partitions, matrix_properties.vertices_partition, matrix_properties.getEdgesBlock(row, col)));
+			Block block(block_file, get_col(), get_row(),  getBlockType<E,IdType>(partitions, matrix_properties->vertices_partition, matrix_properties->getEdgesBlock(row, col), matrix->source_size()));
 			return (block);
 		}
 
