@@ -18,9 +18,13 @@
 #include "edgeconversor.hpp"
 #include "edgelistconversor.hpp"
 #include "mapped_stream.hpp"
-#include "splitter_buffer_block_counting.hpp"
-#include "splitter_buffer_extended.hpp"
+//#include "splitter_buffer_block_counting"
+//#include "splitter_buffer_extended"
+//#include "splitterbuffer.hpp"
 #include "splitterbuffer.hpp"
+#include "genericedgesplittermanager.hpp"
+#include "edgesplittermanagerextended.hpp"
+#include "edgesplittermanagerwithblockcounting.hpp"
 #include "type.hpp"
 #include "util.hpp"
 
@@ -60,6 +64,8 @@ namespace mflash{
 
 		LOG(INFO) << "==== DIVIDING IN PARTITIONS ==== ";
 		clean_mflash_directory(graph_file);
+		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>();
+
 		SplitterBufferWithBlockCounting<IdType> *splitter = new SplitterBufferWithBlockCounting<IdType> (graph_file, edge_data_size, buffer_size, vertices_by_partition, true , "tmp");
 
 		if (file_type_str == "adjlist" || file_type_str == "edgelist"){
@@ -111,6 +117,8 @@ namespace mflash{
 				delete psplitter;
 			}
 			LOG(INFO) << "==== CREATING TRANPOSE AND SPARSE PARTITIONS ==== ";
+
+
 			SplitterBuffer<IdType> *psplitter = new SplitterBuffer<IdType>(graph_file, 0, buffer_size, vertices_by_partition, false, get_transpose_prefix(), partitions);
 			for (int64 i = 0; i < partitions; i++){
 			      std::string partition = get_partition_file(graph_file, i, "");

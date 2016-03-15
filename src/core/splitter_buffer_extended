@@ -20,6 +20,7 @@
 #include "util.hpp"
 
 
+
 namespace mflash{
 
 template <class IdType>
@@ -74,3 +75,4 @@ std::string SplitterBufferExtended<IdType>::getPartitionFile(IdType id){
 
 }
 #endif
+*/

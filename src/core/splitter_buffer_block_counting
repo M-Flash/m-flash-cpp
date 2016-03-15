@@ -78,17 +78,6 @@ template<class IdType> inline IdType SplitterBufferWithBlockCounting<IdType>::co
   return partition_id;
 }
 
-/*
- template <class IdType>
- void SplitterBufferWithBlockCounting<IdType>::printCounters(){
- for (int i = 0 ; i<bpartitions; i++){
- for (int j = 0 ; j<bpartitions; j++){
- std::cout<<block_counters[i * bpartitions + j]<<"\t";
- }
- std::cout<<std::endl;
- }
- }*/
-
 template<class IdType>
 std::vector<int64> SplitterBufferWithBlockCounting<IdType>::getCounters() {
   return block_counters;

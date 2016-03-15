@@ -8,6 +8,7 @@
 #ifndef MFLASH_CPP_CORE_UTIL_HPP_
 #define MFLASH_CPP_CORE_UTIL_HPP_
 
+#include <cmath>
 #include <cstddef>
 #include <fstream>
 #include <iostream>
@@ -15,6 +16,7 @@
 #include <string>
 #include <unistd.h>
 #include <assert.h>
+
 #include <map>
 #include <boost/filesystem.hpp>
 
@@ -406,6 +408,12 @@ int64* sort_and_get_indexes(int64 n, double values[], bool asc) {
 	return indexes;
 }
 
+template <class T>
+bool is2nNumber(T number){
+  int64 exponent = (int64) log2(number);
+  int64 tmp = (int64) exp2(exponent);
+  return tmp == number;
+}
 /*
 int32 stick_this_thread_to_core(int32 core_id) {
 	int32 num_cores = sysconf(_SC_NPROCESSORS_ONLN);

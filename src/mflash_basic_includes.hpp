@@ -17,11 +17,11 @@
 #include "core/util.hpp"
 #include "core/conversions.hpp"
 #include "core/mapped_stream.hpp"
-#include "core/splitter_buffer_block_counting.hpp"
 #include "core/vector.hpp"
 #include "core/primitivevector.hpp"
 #include "core/matrix.hpp"
 #include "core/primitivematrix.hpp"
+#include "core/splitter_buffer_block_counting"
 
 INITIALIZE_EASYLOGGINGPP
 
