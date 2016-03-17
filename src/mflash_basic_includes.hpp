@@ -21,7 +21,7 @@
 #include "core/primitivevector.hpp"
 #include "core/matrix.hpp"
 #include "core/primitivematrix.hpp"
-#include "core/splitter_buffer_block_counting"
+//#include "core/splitter_buffer_block_counting"
 
 INITIALIZE_EASYLOGGINGPP
 

@@ -17,11 +17,12 @@
 #include "../util/easylogging++.h"
 #include "type.hpp"
 #include "util.hpp"
+#include "edgesplittermanager.hpp"
 
 namespace mflash{
 
 template <class IdType>
-class GenericEdgeSplitterManager: public EdgeSplitterManager<IdType>{
+class GenericEdgeSplitterManager{//: public EdgeSplitterManager<IdType>{
 
     public:
         IdType getPartitionId(IdType in_id, IdType out_id);
@@ -32,7 +33,7 @@ class GenericEdgeSplitterManager: public EdgeSplitterManager<IdType>{
         IdType getIdsByPartition();
         bool isInSplit();
 
-        GenericEdgeSplitterManager( int64 ids_by_partitions, bool in_split = true,  int64 partitions = 0, );
+        GenericEdgeSplitterManager( int64 ids_by_partitions, bool in_split = true,  int64 partitions = 0);
         ~GenericEdgeSplitterManager(){}
 
     private:
@@ -41,14 +42,13 @@ class GenericEdgeSplitterManager: public EdgeSplitterManager<IdType>{
         IdType partitions;
         IdType partitionshift = 0;
         std::vector<int64> partition_counters;
-        std::string file_prefix = "";
 
 
 };
 
 
-template <class IdType> inline
-IdType GenericEdgeSplitterManager<IdType>::GenericEdgeSplitterManager(int64 ids_by_partition, bool in_split, int64 partitions, std::string file_prefix = ""){
+template <class IdType>
+GenericEdgeSplitterManager<IdType>::GenericEdgeSplitterManager(int64 ids_by_partition, bool in_split, int64 partitions){
 
 	if(!is2nNumber(ids_by_partition)){
 	  LOG (ERROR)<< "ids by partititon must be multiple of 2^n";
@@ -56,7 +56,6 @@ IdType GenericEdgeSplitterManager<IdType>::GenericEdgeSplitterManager(int64 ids_
 	}
 	partitionshift = log2(ids_by_partition);
 
-	this->file_prefix = file_prefix;
 	this->ids_by_partition = ids_by_partition;
 	this->partitions = partitions;
 	this->in_split = in_split;
@@ -66,7 +65,7 @@ IdType GenericEdgeSplitterManager<IdType>::GenericEdgeSplitterManager(int64 ids_
 
 template <class IdType> inline
 IdType GenericEdgeSplitterManager<IdType>::getPartitionId(IdType in_id, IdType out_id){
-  if (InSplit)
+  if (in_split)
     return in_id>>partitionshift;
   return out_id>>partitionshift;
 }
@@ -86,9 +85,20 @@ IdType GenericEdgeSplitterManager<IdType>::countEdge(IdType in_id, IdType out_id
 }
 
 template <class IdType> inline
+IdType GenericEdgeSplitterManager<IdType>::getIdsByPartition(){
+    return ids_by_partition;
+}
+
+template <class IdType> inline
 IdType GenericEdgeSplitterManager<IdType>::getPartitions(){
     return partitions;
 }
+
+template <class IdType> inline
+bool GenericEdgeSplitterManager<IdType>::isInSplit(){
+    return in_split;
+}
+
 
 template <class IdType> inline
 std::vector<int64>& GenericEdgeSplitterManager<IdType>::getPartitionCounters(){
@@ -98,7 +108,7 @@ std::vector<int64>& GenericEdgeSplitterManager<IdType>::getPartitionCounters(){
 
 template <class IdType> inline
 std::string GenericEdgeSplitterManager<IdType>::getPartitionFile(IdType id){
-    return get_partition_file(graph, id, file_prefix);
+    return get_partition_file("", id, "");
 }
 
 }

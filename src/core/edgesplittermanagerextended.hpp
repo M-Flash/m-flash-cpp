@@ -17,11 +17,12 @@
 #include "../util/easylogging++.h"
 #include "type.hpp"
 #include "util.hpp"
+#include "edgesplittermanager.hpp"
 
 namespace mflash{
 
 template <class IdType>
-class EdgeSplitterManagerExtended: public EdgeSplitterManager<IdType>{
+class EdgeSplitterManagerExtended{//: public EdgeSplitterManager< IdType > {
 
     public:
         IdType getPartitionId(IdType in_id, IdType out_id);
@@ -41,12 +42,13 @@ class EdgeSplitterManagerExtended: public EdgeSplitterManager<IdType>{
         IdType partitions;
         IdType partitionshift = 0;
         std::vector<int64> partition_counters;
+        bool *sparse_block;
+        int64 partition_id;
 
 };
 
 
-template <class IdType> inline
-IdType EdgeSplitterManagerExtended<IdType>::EdgeSplitterManagerExtended(int64 ids_by_partition, bool in_split, int64 partition_id, std::vector<BlockType> block_types){
+template <class IdType> EdgeSplitterManagerExtended<IdType>::EdgeSplitterManagerExtended(int64 ids_by_partition, bool in_split, int64 partition_id, std::vector<BlockType> block_types){
 
 
 	if(!is2nNumber(ids_by_partition)){
@@ -74,11 +76,12 @@ IdType EdgeSplitterManagerExtended<IdType>::EdgeSplitterManagerExtended(int64 id
 
 template <class IdType> inline
 IdType EdgeSplitterManagerExtended<IdType>::getPartitionId(IdType in_id, IdType out_id){
+  if (!in_split)
+    in_id = out_id;
+  in_id>>=partitionshift;
   if (sparse_block[in_id])
       return this->partitions-1;
-  if (InSplit)
-      return in_id>>partitionshift;
-  return out_id>>partitionshift;
+  return in_id;
 }
 
 
@@ -107,10 +110,10 @@ std::vector<int64>& EdgeSplitterManagerExtended<IdType>::getPartitionCounters(){
 
 
 template <class IdType> inline
-std::string GenericEdgeSplitterManager<IdType>::getPartitionFile(IdType id){
+std::string EdgeSplitterManagerExtended<IdType>::getPartitionFile(IdType id){
     if(id == this->partitions -1)
-        return get_partition_file(this->graph, partition_id);
-    return get_block_file(this->graph, partition_id, id);
+        return get_partition_file("", partition_id);
+    return get_block_file("", partition_id, id);
 }
 
 }

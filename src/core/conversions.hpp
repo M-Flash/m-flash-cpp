@@ -64,24 +64,26 @@ namespace mflash{
 
 		LOG(INFO) << "==== DIVIDING IN PARTITIONS ==== ";
 		clean_mflash_directory(graph_file);
-		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>();
+		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>(vertices_by_partition, true, 0);
 
-		SplitterBufferWithBlockCounting<IdType> *splitter = new SplitterBufferWithBlockCounting<IdType> (graph_file, edge_data_size, buffer_size, vertices_by_partition, true , "tmp");
+		SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> > *bsplitter = new SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> >(emanager, graph_file, edge_data_size ,buffer_size, "tmp");
+
 
 		if (file_type_str == "adjlist" || file_type_str == "edgelist"){
-			EdgeConversor<IdType>::process(graph_file, ' ',  file_type_str == "edgelist" , *splitter );
+			EdgeConversor<IdType>::process(graph_file, ' ',  file_type_str == "edgelist" , *bsplitter );
 		} else if (file_type_str == "adjlist2" ){
-			EdgeListConversor<IdType>::process(graph_file, ' ', *splitter );
+			EdgeListConversor<IdType>::process(graph_file, ' ', *bsplitter );
 		}else {
 			LOG(ERROR) << "Support for "<< file_type_str  << " not implemented.";
 			assert(false);
 		}
 
 
-		std::vector<int64> counters = splitter->getCounters();
-		int64 partitions = splitter->getPartitions();
-		int64 max_id = splitter->getMaxId();
-		delete splitter;
+		std::vector<int64> counters = emanager->getCounters();
+		int64 partitions = emanager->getPartitions();
+		int64 max_id = emanager->getMaxId();
+		delete emanager;
+		delete bsplitter;
 
 		if(partitions == 1){
 			LOG(INFO) << "==== DIVIDING IN BLOCKS OMITTED BECAUSE GRAPH HAS DIVIDED IN A SINGLE PARTITION ==== ";
@@ -103,7 +105,10 @@ namespace mflash{
 					//ratio = ((double)1)/partitions + ( ((double)2) * counters[i * partitions + j] * edge_size / vertices_by_partition);
 					block_types[j] =  getBlockType<E, IdType>(partitions, vertices_by_partition, counters[i * partitions + j], vertex_size); //ratio<1? BlockType::SPARSE: BlockType::DENSE;
 				}
-				SplitterBufferExtended<IdType> *psplitter = new SplitterBufferExtended<IdType>(graph_file, 0, buffer_size, vertices_by_partition, false, i, block_types);
+
+		        EdgeSplitterManagerExtended<IdType> *emanagerext = new EdgeSplitterManagerExtended<IdType>(vertices_by_partition, false,i, block_types);
+		        SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> > *psplitter = new SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> >(emanagerext, graph_file, edge_data_size, buffer_size, "");
+
 				EmptyField edge_data_type;
 				while(stream.has_remain()){
 					from = stream.next<IdType>();
@@ -115,11 +120,12 @@ namespace mflash{
 				//remove tmp file
 				delete_file(tmp_partition);
 				delete psplitter;
+				delete emanagerext;
 			}
 			LOG(INFO) << "==== CREATING TRANPOSE AND SPARSE PARTITIONS ==== ";
+			GenericEdgeSplitterManager<IdType> *emanagerext = new GenericEdgeSplitterManager<IdType>(vertices_by_partition, false, partitions);
+			SplitterBuffer<IdType, GenericEdgeSplitterManager<IdType> > *psplitter = new SplitterBuffer<IdType, GenericEdgeSplitterManager<IdType> >(emanagerext, graph_file, edge_data_size, buffer_size, get_transpose_prefix());
 
-
-			SplitterBuffer<IdType> *psplitter = new SplitterBuffer<IdType>(graph_file, 0, buffer_size, vertices_by_partition, false, get_transpose_prefix(), partitions);
 			for (int64 i = 0; i < partitions; i++){
 			      std::string partition = get_partition_file(graph_file, i, "");
 			      if(!mflash::exist_file(partition))

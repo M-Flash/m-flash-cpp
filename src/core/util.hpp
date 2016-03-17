@@ -99,7 +99,8 @@ string get_properties_file(string graph) {
 
 string get_block_file(string graph, int64 i, int64 j, string prefix = "") {
 	std::stringstream file;
-	file << get_graph_directory(graph) ;
+	if(!graph.empty())
+	    file << get_graph_directory(graph) ;
 
 	if(!prefix.empty())
 			file<< prefix + "_" ;
@@ -110,12 +111,24 @@ string get_block_file(string graph, int64 i, int64 j, string prefix = "") {
 
 string get_partition_file(string graph, int64 partition_id, string prefix = "") {
 	std::stringstream file;
-	file << get_graph_directory(graph);
+	if(!graph.empty())
+	    file << get_graph_directory(graph);
 	if(!prefix.empty())
 		file<< prefix + "_" ;
 	file<< partition_id << ".partition";
 	return file.str();
 }
+
+string get_file(string graph, string prefix = "", string suffix = "") {
+    std::stringstream file;
+    file << get_graph_directory(graph);
+    if(!prefix.empty())
+        file<< prefix + "_" ;
+    if(!suffix.empty())
+        file<< suffix;
+    return file.str();
+}
+
 string get_transpose_prefix() {
 	std::stringstream file;
 	file << "transpose";

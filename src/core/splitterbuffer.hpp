@@ -289,7 +289,7 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::split(){
 		int64 partition_size = sizeof(char) * partition_counters[i] * edge_size;
 
 		FILE * pFile;
-		std::string file = manager->getPartitionFile(i);
+		std::string file = get_file(graph, file_prefix, manager->getPartitionFile(i));
 		pFile = fopen (file.c_str(), file_offsets[i] == 0? "wb": "ab");
 		//LOG(DEBUG) << "Storing edges in partition "<< i << " : "<< file;
 		fseek(pFile, file_offsets[i], SEEK_SET);

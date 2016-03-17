@@ -4,7 +4,7 @@
 
 using namespace mflash;
 int main(int argc, char* argv[]){
-	std::cout<<sizeof(int32)<<" "<<sizeof(int64)<<" "<<sizeof(int)<<std::endl;
+
 
 	//mflash_init(argc, argv);
 	//std::cout<<mflash::get_config_option_string("filetype", "ed")<<std::endl;
@@ -27,17 +27,14 @@ int main(int argc, char* argv[]){
 	char separator = ' ';
 */
 
-
-/*
-
 	//Twitter
-	std::string graph_file = "/run/media/hugo/data/datasets/twitter";
-	int64 vertices_partition = 41652231;
-	int64 buffer_size = 1024L*1024*1024 * 8;
-	bool edgelist = true;
-	char separator = ' ';
+	std::string graph_file = "/data/hugo-data/hugo-others/datasets/twitter";
+	//int64 vertices_partition = 41652231;
+	//int64 buffer_size = 1024L*1024*1024 * 8;
+	//bool edgelist = true;
+	//mflash::set_conf("memorysize", "16");
+	mflash::convert<EmptyField, int32>(graph_file, sizeof(float), sizeof(float), "edgelist");
 
-*/
 
 	//LiveJournal
 /*	std::string graph_file = "/data/hugo-data/hugo-others/datasets/test";

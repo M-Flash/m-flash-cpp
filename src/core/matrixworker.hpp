@@ -23,6 +23,7 @@
 #include "matrix.hpp"
 #include "operator.hpp"
 #include "splitterbuffer.hpp"
+#include "genericedgesplittermanager.hpp"
 #include "type.hpp"
 #include "util.hpp"
 #include "vector.hpp"
@@ -539,7 +540,13 @@ void MatrixWorker<E, IdType>::preprocessing() {
 	initialize_fields<VSource, VDestination>(FieldType::SOURCE);
 	// only one field
 	int64 edge_size_extended = getEdgeDataSize<E>() + source_size();
-	SplitterBuffer<IdType> *splitter = new SplitterBuffer<IdType>(matrix->get_file(), edge_size_extended, matrixProperties.vertices_partition * vertex_size, matrixProperties.vertices_partition, matrix->is_transpose(), "updates", matrixProperties.partitions);
+	GenericEdgeSplitterManager<IdType> *emanagerext = new GenericEdgeSplitterManager<IdType>(matrixProperties.vertices_partition, matrix->is_transpose(), matrixProperties.partitions);
+	SplitterBuffer<IdType, GenericEdgeSplitterManager<IdType> > *splitter = new SplitterBuffer<IdType, GenericEdgeSplitterManager<IdType> >(emanagerext, matrix->get_file(), edge_size_extended, matrixProperties.vertices_partition * vertex_size, "updates");
+
+
+	//SplitterBuffer<IdType> *splitter = new SplitterBuffer<IdType>(, , , , , , );
+
+
 
 	int64 source_offset;
 

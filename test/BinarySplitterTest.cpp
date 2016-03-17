@@ -8,7 +8,7 @@ INITIALIZE_EASYLOGGINGPP
 
 using namespace mflash;
 int main(){
-
+/*
 	LOG(INFO)<<"Starting Binary splitter!!";
 	std::string graph_file = "/hugo/datasets/yahoo1/0.partition";
 	SplitterBuffer<int> splitter(graph_file, 0, 268435456, 8589934592, 0, true);
@@ -24,6 +24,6 @@ int main(){
 		splitter.add(from, to, &field);
 	}
 	splitter.flush();
-	LOG(INFO)<<"Binary splitter ready!!";
+	LOG(INFO)<<"Binary splitter ready!!";*/
 
 }
