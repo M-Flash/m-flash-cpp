@@ -32,6 +32,7 @@ namespace mflash {
 const int64 DEFAULT_MEMORY_SIZE = 4 * 1073741824L; //4GB
 const int64 DEFAULT_ELEMENT_SIZE = 2 *sizeof(float); //4GB
 const int64 DEFAULT_VERTEX_SIZE = sizeof(float); //4GB
+const int64 DEFAULT_CACHE_SIZE = 1048576; //1M
 
 
 const int32 MFLASH_MATRIX_THREADS = 1;
@@ -46,6 +47,7 @@ const string STREAM_FILE = "edge_stream";
 const int64 DEFAULT_BYTES_BLOCK = sizeof(int64) * 5; // 40 BYTES
 
 int64 MEMORY_SIZE_BYTES = 1 * 1073741824L; //2GB
+
 
 
 
@@ -293,6 +295,12 @@ inline int64 getVeticesByPartition() {
 	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (2 * sizeof(V));
 }
 
+template <class V>
+inline int64 getVeticesCache() {
+    return get_config_option_long("cachesize", DEFAULT_CACHE_SIZE)/ (2 * sizeof(V));
+}
+
+
 inline int64 validateElementSize(int64 element_size) {
 	if(element_size == 0){
 		return get_config_option_long("elementsize", DEFAULT_ELEMENT_SIZE);
@@ -311,6 +319,12 @@ inline int64 getVeticesByPartition(int64 element_size) {
 	element_size = validateElementSize(element_size);
 	return get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE)/ (element_size);
 }
+
+inline int64 getVeticesCache(int64 element_size) {
+    element_size = validateElementSize(element_size);
+    return get_config_option_long("cachesize", DEFAULT_CACHE_SIZE)/ (element_size);
+}
+
 
 /**
  *

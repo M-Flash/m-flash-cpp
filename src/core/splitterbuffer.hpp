@@ -281,24 +281,31 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::split(){
 	file_offsets.resize(partitions);
 
 	char* offset = base_ptr;
+	std::string partition_file = "";
 	//writing partitions to disk
+	int32 file_id = -1;
 	for(int32 i = 0 ; i < partitions; i++){
+	    std::string tmp_partition_file = manager->getPartitionFile(i);
+	    if(partition_file != tmp_partition_file){
+	        partition_file = tmp_partition_file;
+	        file_id = i;
+	    }
 		if(partition_counters[i] == 0){
 			continue;
 		}
 		int64 partition_size = sizeof(char) * partition_counters[i] * edge_size;
 
 		FILE * pFile;
-		std::string file = get_file(graph, file_prefix, manager->getPartitionFile(i));
-		pFile = fopen (file.c_str(), file_offsets[i] == 0? "wb": "ab");
+		std::string file = get_file(graph, file_prefix, partition_file);
+		pFile = fopen (file.c_str(), file_offsets[file_id] == 0? "wb": "ab");
 		//LOG(DEBUG) << "Storing edges in partition "<< i << " : "<< file;
-		fseek(pFile, file_offsets[i], SEEK_SET);
+		fseek(pFile, file_offsets[file_id], SEEK_SET);
 		fwrite (offset,sizeof(char), partition_size, pFile);
 		fclose (pFile);
 
 		offset += partition_size;
 
-		file_offsets[i] += partition_size;
+		file_offsets[file_id] += partition_size;
 		//resetting counter for the next split
 		partition_counters[i] = 0;
 	}

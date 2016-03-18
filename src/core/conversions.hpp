@@ -50,6 +50,7 @@ namespace mflash{
 
 		int64 buffer_size = get_config_option_long("memorysize", DEFAULT_MEMORY_SIZE);
 		int64 vertices_by_partition = getVeticesByPartition(element_size);
+		int64 vertices_by_cache = getVeticesCache(element_size);
 		int64 edge_data_size = mflash::getEdgeDataSize<E>();
 
 
@@ -64,7 +65,7 @@ namespace mflash{
 
 		LOG(INFO) << "==== DIVIDING IN PARTITIONS ==== ";
 		clean_mflash_directory(graph_file);
-		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>(vertices_by_partition, true, 0);
+		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>(vertices_by_partition, true, 0, vertices_by_cache);
 
 		SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> > *bsplitter = new SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> >(emanager, graph_file, edge_data_size ,buffer_size, "tmp");
 
@@ -80,16 +81,16 @@ namespace mflash{
 
 
 		std::vector<int64> counters = emanager->getCounters();
-		int64 partitions = emanager->getPartitions();
+		int64 partitions = std::sqrt(counters.size());
 		int64 max_id = emanager->getMaxId();
 		delete emanager;
 		delete bsplitter;
-
+/*
 		if(partitions == 1){
 			LOG(INFO) << "==== DIVIDING IN BLOCKS OMITTED BECAUSE GRAPH HAS DIVIDED IN A SINGLE PARTITION ==== ";
 			rename_file(get_partition_file(graph_file, 0, "tmp"), get_block_file(graph_file,0, 0));
 		}else{
-			LOG(INFO) << "==== DIVIDING IN BLOCKS ==== ";
+			*/LOG(INFO) << "==== DIVIDING IN BLOCKS ==== ";
 			for (int64 i = 0; i < partitions; i++){
 				LOG(INFO) << "==== DIVIDING PARTITION "<< i << "==== ";
 				std::string tmp_partition = get_partition_file(graph_file, i, "tmp");
@@ -106,7 +107,7 @@ namespace mflash{
 					block_types[j] =  getBlockType<E, IdType>(partitions, vertices_by_partition, counters[i * partitions + j], vertex_size); //ratio<1? BlockType::SPARSE: BlockType::DENSE;
 				}
 
-		        EdgeSplitterManagerExtended<IdType> *emanagerext = new EdgeSplitterManagerExtended<IdType>(vertices_by_partition, false,i, block_types);
+		        EdgeSplitterManagerExtended<IdType> *emanagerext = new EdgeSplitterManagerExtended<IdType>(vertices_by_partition, false,i, block_types, vertices_by_cache);
 		        SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> > *psplitter = new SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> >(emanagerext, graph_file, edge_data_size, buffer_size, "");
 
 				EmptyField edge_data_type;
@@ -144,7 +145,7 @@ namespace mflash{
 			psplitter->flush();
 			delete psplitter;
 
-		}
+		//}
 		LOG(INFO) << "==== PREPROCESSING FINISHED ==== ";
 		MatrixProperties properties(max_id+1, sizeof(IdType) ,partitions, vertices_by_partition, counters.data());
 		update_matrix_properties(graph_file, properties);

@@ -32,7 +32,6 @@ int main(int argc, char* argv[]){
 	//int64 vertices_partition = 41652231;
 	//int64 buffer_size = 1024L*1024*1024 * 8;
 	//bool edgelist = true;
-	//mflash::set_conf("memorysize", "16");
 	mflash::convert<EmptyField, int32>(graph_file, sizeof(float), sizeof(float), "edgelist");
 
 

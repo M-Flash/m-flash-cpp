@@ -2,11 +2,11 @@
 # Commandline parameters override values in the configuration file.
 # execthreads=2
 # configuration for 4GB
-memorysize = 4294967296
-cachesize = 1048576
+memorysize = 8589934592
+cachesize = 2097152
 filetype = edgelist
-edgeseparator = 	
-file = /data/hugo-data/graph
+edgeseparator =  
+file = /data/hugo-data/hugo-others/datasets/powerlawgraph
 iterative = 0
 niters = 1
 #check_ids = 1

@@ -33,31 +33,48 @@ class EdgeSplitterManagerExtended{//: public EdgeSplitterManager< IdType > {
         IdType getIdsByPartition();
         bool isInSplit();
 
-        EdgeSplitterManagerExtended( int64 ids_by_partitions, bool in_split, int64 partition_id, std::vector<BlockType> block_types);
+        EdgeSplitterManagerExtended( int64 ids_by_partitions, bool in_split, int64 partition_id, std::vector<BlockType> block_types, int64 ids_cache = 0);
         ~EdgeSplitterManagerExtended(){}
 
     private:
+        IdType getPartitionId(IdType in_id, IdType out_id, int32 shift);
+
         bool in_split;
         IdType ids_by_partition;
         IdType partitions;
         IdType partitionshift = 0;
+        IdType cache_shift = 0;
+        IdType shift = 0;
         std::vector<int64> partition_counters;
         bool *sparse_block;
         int64 partition_id;
+        IdType ids_cache;
+        bool cache_partitioning;
+
 
 };
 
 
-template <class IdType> EdgeSplitterManagerExtended<IdType>::EdgeSplitterManagerExtended(int64 ids_by_partition, bool in_split, int64 partition_id, std::vector<BlockType> block_types){
+template <class IdType> EdgeSplitterManagerExtended<IdType>::EdgeSplitterManagerExtended(int64 ids_by_partition, bool in_split, int64 partition_id, std::vector<BlockType> block_types, int64 ids_cache){
+    if(ids_cache != 0 ){
+        cache_partitioning = true;
+    }
+    if(cache_partitioning && ids_by_partition % ids_cache != 0){
+        LOG (ERROR)<< "ids by partititon must be multiple of ids in cache";
+        assert(false);
+    }
+    if(!is2nNumber(ids_by_partition)){
+      LOG (ERROR)<< "ids by partititon must be multiple of 2^n";
+      assert(false);
+    }
 
 
-	if(!is2nNumber(ids_by_partition)){
-	  LOG (ERROR)<< "ids by partititon must be multiple of 2^n";
-	  assert(false);
-	}
-	partitionshift = log2(ids_by_partition);
+    cache_shift = log2(ids_cache);
+    partitionshift = log2(ids_by_partition);
+    shift = (cache_partitioning? cache_shift: partitionshift);
 
 	this->ids_by_partition = ids_by_partition;
+	this->ids_cache = ids_cache;
 	this->partitions = block_types.size()+1;
 	this->in_split = in_split;
 	this->partition_counters.resize(partitions);// = new std::vector<int64>(partitions);
@@ -78,12 +95,11 @@ template <class IdType> inline
 IdType EdgeSplitterManagerExtended<IdType>::getPartitionId(IdType in_id, IdType out_id){
   if (!in_split)
     in_id = out_id;
-  in_id>>=partitionshift;
-  if (sparse_block[in_id])
+  in_id>>=shift;
+  if (sparse_block[in_id >>partitionshift])
       return this->partitions-1;
   return in_id;
 }
-
 
 template <class IdType> inline
 IdType EdgeSplitterManagerExtended<IdType>::countEdge(IdType in_id, IdType out_id){
@@ -111,8 +127,12 @@ std::vector<int64>& EdgeSplitterManagerExtended<IdType>::getPartitionCounters(){
 
 template <class IdType> inline
 std::string EdgeSplitterManagerExtended<IdType>::getPartitionFile(IdType id){
-    if(id == this->partitions -1)
+    if(cache_shift){
+        id = (int)(id/(ids_by_partition/ids_cache));
+    }
+    if(id == this->partitions -1){
         return get_partition_file("", partition_id);
+    }
     return get_block_file("", partition_id, id);
 }
 

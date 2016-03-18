@@ -311,11 +311,18 @@ void MatrixWorker<E, IdType>::initialize_fields(FieldType type) {
 template<class E, class IdType>
 void MatrixWorker<E, IdType>::clean_fields() {
 	if (default_source != 0) {
-		delete source_pointer;
+	    if(source_pointer != 0){
+	        delete source_pointer;
+	        source_pointer = 0;
+	    }
 	}
 
 	if (default_destination != 0) {
-		delete destination_pointer;
+	    if(destination_pointer != 0){
+	        delete destination_pointer;
+	        destination_pointer = 0;
+	    }
+
 	}
 
 	for (int32 i = 0; i < field_count; i++) {
