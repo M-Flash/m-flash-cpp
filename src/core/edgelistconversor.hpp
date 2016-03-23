@@ -28,16 +28,16 @@ namespace mflash{
  * See http://www.lemurproject.org/clueweb12/webgraph.php/
  *
  */
-template <class IdType>
+template <class IdType, class EdgeDataType = EmptyField>
 class EdgeListConversor{
 	public:
 		template <class Splitter>
 		static void process (const std::string file_graph, const char separator, Splitter &splitter);
 };
 
-template <class IdType>
+template <class IdType, class EdgeDataType>
 template <class Splitter>
-void EdgeListConversor<IdType>::process(const std::string file_graph, const char separator, Splitter &splitter){
+void EdgeListConversor<IdType,EdgeDataType>::process(const std::string file_graph, const char separator, Splitter &splitter){
 	MappedStream in(file_graph);
 
 	IdType v1 = 		0;
@@ -52,7 +52,7 @@ void EdgeListConversor<IdType>::process(const std::string file_graph, const char
 	const char separator3 = ' ';
 
 	bool first_line = true;
-	EmptyField value;
+	EdgeDataType *value = new EdgeDataType() ;
 
 	while(in.has_remain()){
 		char b = in.next_char();
@@ -76,7 +76,7 @@ void EdgeListConversor<IdType>::process(const std::string file_graph, const char
 		continue;
 	  }
 	  if (b == separator || b == separator2 || b == separator3){
-		splitter.add(v1, v2, &value);
+		splitter.add(v1, v2, value);
 		v2 = 0;
 		continue;
 	  }
@@ -89,7 +89,7 @@ void EdgeListConversor<IdType>::process(const std::string file_graph, const char
 			in.set_position(in.position()- sizeof(char));
 
 			if(v2 != 0){
-				splitter.add(v1, v2, &value);
+				splitter.add(v1, v2, value);
 			}
 			v1++;
 			v2 = 0;
@@ -104,6 +104,7 @@ void EdgeListConversor<IdType>::process(const std::string file_graph, const char
 	}
 	in.close_stream();
 	splitter.flush();
+	delete value;
 	LOG(INFO)<<"Graph Binarization was succesfully";
 }
 

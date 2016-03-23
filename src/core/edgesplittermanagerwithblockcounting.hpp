@@ -32,6 +32,7 @@ class EdgeSplitterManagerWithBlockCounting{//: public EdgeSplitterManager< IdTyp
         IdType getPartitions();
         IdType getIdsByPartition();
         bool isInSplit();
+        void setInSplit(bool in_split);
 
         //int64 getBlockPartitions();
         IdType getMaxId();
@@ -63,9 +64,8 @@ class EdgeSplitterManagerWithBlockCounting{//: public EdgeSplitterManager< IdTyp
 template <class IdType>
 EdgeSplitterManagerWithBlockCounting<IdType>::EdgeSplitterManagerWithBlockCounting(int64 ids_by_partition, bool in_split, int64 partitions, int64 ids_cache){
 
-    if(ids_cache != 0 ){
-        cache_partitioning = true;
-    }
+    cache_partitioning = (ids_cache != 0);
+
     if(cache_partitioning && ids_by_partition % ids_cache != 0){
         LOG (ERROR)<< "ids by partititon must be multiple of ids in cache";
         assert(false);
@@ -75,8 +75,7 @@ EdgeSplitterManagerWithBlockCounting<IdType>::EdgeSplitterManagerWithBlockCounti
 	  assert(false);
 	}
 
-
-	cache_shift = log2(ids_cache);
+	cache_shift = (ids_cache != 0?log2(ids_cache) : 0);
 	partitionshift = log2(ids_by_partition);
 	shift = (cache_partitioning? cache_shift: partitionshift);
 
@@ -151,6 +150,21 @@ template <class IdType> inline
 IdType EdgeSplitterManagerWithBlockCounting<IdType>::getPartitions(){
     return partitions;
     //return std::max(partitions,bpartitions);
+}
+
+template <class IdType> inline
+IdType EdgeSplitterManagerWithBlockCounting<IdType>::getIdsByPartition(){
+    return ids_by_partition;
+}
+
+template <class IdType> inline
+bool EdgeSplitterManagerWithBlockCounting<IdType>::isInSplit(){
+    return in_split;
+}
+
+template <class IdType> inline
+void EdgeSplitterManagerWithBlockCounting<IdType>:: setInSplit(bool in_split){
+    this->in_split = in_split;
 }
 
 

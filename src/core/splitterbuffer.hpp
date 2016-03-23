@@ -19,7 +19,7 @@
 
 namespace mflash{
 
-template <class IdType, class EdgeSplitterManager_>
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType = EmptyField>
 class SplitterBuffer{
 
 protected:
@@ -74,9 +74,13 @@ protected:
 
 	std::string file_prefix;
 
+	bool cache_partitioning;
+
 	EdgeSplitterManager_ * manager;
 
 	void split();
+	std::vector<int64>* block_counting(char* ptr_, char* last_ptr_, bool in_split);
+	void block_sorting( char* ptr_, char* last_ptr_, bool in_split, std::vector<int64> & counters);
 
 	//virtual IdType getPartitionId(IdType in_id, IdType out_id);
 
@@ -89,7 +93,7 @@ protected:
 
 public:
 
-	SplitterBuffer(EdgeSplitterManager_* manager, std::string graph, int64 edge_data_size, int64 buffer_size,  std::string file_prefix = "");
+	SplitterBuffer(EdgeSplitterManager_* manager, std::string graph, int64 edge_data_size, int64 buffer_size,  std::string file_prefix = "", bool cache_partitioning = true);
 
 	void add(IdType in_id, IdType out_id, void* edge_data);
 
@@ -99,8 +103,8 @@ public:
 	virtual ~SplitterBuffer();
 };
 
-template <class IdType, class EdgeSplitterManager_> inline
-SplitterBuffer<IdType, EdgeSplitterManager_>::SplitterBuffer(EdgeSplitterManager_* manager, std::string graph, int64 edge_data_size, int64 buffer_size, std::string file_prefix){
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType> inline
+SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::SplitterBuffer(EdgeSplitterManager_* manager, std::string graph, int64 edge_data_size, int64 buffer_size, std::string file_prefix, bool cache_partitioning){
 	this->manager = manager;
 	this->graph = graph;
 	this->edge_data_size = edge_data_size;
@@ -117,19 +121,20 @@ SplitterBuffer<IdType, EdgeSplitterManager_>::SplitterBuffer(EdgeSplitterManager
 	ptr_last_position = splitter_buffer + edge_size * elements_buffer;
 
 	this->file_offsets.resize(manager->getPartitions());// = new std::vector<int64>(partitions);
+	this->cache_partitioning = cache_partitioning;
 
 }
 
 
-template <class IdType, class EdgeSplitterManager_>
-SplitterBuffer<IdType, EdgeSplitterManager_>::~SplitterBuffer(){
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::~SplitterBuffer(){
 	delete this->splitter_buffer;
 }
 
 
 
-/*template <class IdType, class EdgeSplitterManager_>
-void SplitterBuffer<IdType, EdgeSplitterManager_>::checkCounters(){
+/*template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::checkCounters(){
 
 	int64 counters[partitions];
 	memset(counters, 0, sizeof(int64) * partitions);
@@ -147,8 +152,8 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::checkCounters(){
 /*
 
 
-template <class IdType, class EdgeSplitterManager_>
-void SplitterBuffer<IdType, EdgeSplitterManager_>::checkCounters2(int64 partition_initial_positions[], int64 partition_offset_positions[]){
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::checkCounters2(int64 partition_initial_positions[], int64 partition_offset_positions[]){
 
 	int64 counters[partitions];
 	memset(counters, 0, sizeof(int64) * partitions);
@@ -183,8 +188,8 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::checkCounters2(int64 partitio
 */
 
 
-template <class IdType, class EdgeSplitterManager_> inline
-void SplitterBuffer<IdType, EdgeSplitterManager_>::add(IdType in_id, IdType out_id, void* edge_data){
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType> inline
+void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::add(IdType in_id, IdType out_id, void* edge_data){
 	if(ptr_current_position >= ptr_last_position){
 		split();
 	}
@@ -199,84 +204,120 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::add(IdType in_id, IdType out_
 
 
 
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+std::vector<int64>* SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::block_counting(char* ptr_, char* last_ptr_, bool in_split){
+    IdType partition_id;
+
+    IdType partitions = manager->getPartitions();
+    std::vector<int64> *sub_counters = new std::vector<int64>(partitions);
+
+    char* base_ptr = ptr_;
+    int64 ptr = 0;
+    int64 last_ptr = last_ptr_ - ptr_;
+
+    int64 sub_counters_size = partitions;
+
+    bool current_in_split = manager->isInSplit();
+    manager->setInSplit(in_split);
+
+    while(ptr < last_ptr){
+        partition_id = manager->getPartitionId(*((IdType*)(ptr + base_ptr)), *((IdType*)(ptr + base_ptr+ id_size)));
+
+        if(sub_counters_size < partition_id+1){
+            sub_counters_size = partition_id+1;
+            sub_counters->resize(sub_counters_size);
+        }
+        (*sub_counters)[partition_id]++;
+
+        ptr += edge_size;
+    }
+    manager->setInSplit(current_in_split);
+
+    return sub_counters;
+
+}
+
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::block_sorting( char* ptr_, char* last_ptr_, bool in_split, std::vector<int64> & counters){
+    IdType partition_id;
+    char tmp_edge[edge_size];
+    IdType partitions = manager->getPartitions();
+
+    char* base_ptr = ptr_;
+    int64 ptr = 0;
+    int64 last_ptr = last_ptr_ - ptr_;
+
+    int64 partition_initial_positions[partitions+1];
+    int64 partition_offset_positions[partitions+1];
+    partition_initial_positions[0] = 0;
+    partition_offset_positions[0] = 0;
+
+    for(int32 i = 1 ; i <= partitions; i++){
+        partition_initial_positions[i] = partition_initial_positions[i-1] + edge_size * counters[i-1];
+        partition_offset_positions[i] = partition_initial_positions[i];
+    }
+    partition_offset_positions[partitions] = 0;
+
+    //setting last pointer to the first position of the last partion because it will be sorted
+    last_ptr =  partition_initial_positions[partitions-1];
+
+    bool current_in_split = manager->isInSplit();
+    manager->setInSplit(in_split);
+
+    int64 partition_ptr;
+    while(ptr < last_ptr){
+        partition_id = manager->getPartitionId(*((IdType*)(ptr + base_ptr)), *((IdType*)(ptr + base_ptr+ id_size)));
+
+        partition_ptr = partition_offset_positions[partition_id];
+
+        if(ptr != partition_ptr){
+            memcpy(tmp_edge, base_ptr+ptr, edge_size);
+            memcpy(base_ptr+ptr, base_ptr+partition_ptr ,edge_size);
+            memcpy(base_ptr+partition_ptr, tmp_edge ,edge_size);
+
+        }else{
+            ptr += edge_size;
+            if(ptr == partition_initial_positions[partition_id+1]){
+                //moving the pointer to the next partition with edges
+                while (partition_initial_positions[partition_id+2] - partition_initial_positions[partition_id+1] == 0)
+                    partition_id++;
+                //condition required when the next partition has sorted
+                ptr = partition_offset_positions[partition_id+1] = max(partition_offset_positions[partition_id+1] - edge_size, partition_initial_positions[partition_id+1]);
+            }
+
+        }
+        partition_offset_positions[partition_id]+= edge_size;
+    }
+
+    manager->setInSplit(current_in_split);
+
+}
 
 
-template <class IdType, class EdgeSplitterManager_>
-void SplitterBuffer<IdType, EdgeSplitterManager_>::split(){
+
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::split(){
 
 
 	//LOG(INFO) << "Splitting buffer";
 	//splitting value
 	char* base_ptr = splitter_buffer;
 	int64 ptr = 0; //splitter_buffer->address();
-	int64 last_ptr; //ptr + current_position * edge_size;
+	int64 last_ptr = 0; //ptr + current_position * edge_size;
 	IdType partitions = manager->getPartitions();
-	char tmp_edge[edge_size];
 
 	int64 partition_initial_positions[partitions+1];
-	int64 partition_offset_positions[partitions+1];
-	partition_initial_positions[0] = 0;
-	partition_offset_positions[0] = 0;
-	std::vector<int64>& partition_counters = manager->getPartitionCounters();
-	//LOG(INFO) << "Base ptr " << (int64) base_ptr;
-	for(int32 i = 1 ; i <= partitions; i++){
-		partition_initial_positions[i] = partition_initial_positions[i-1] + edge_size * partition_counters[i-1];
-		partition_offset_positions[i] = partition_initial_positions[i];
-	//	LOG(INFO) << "partitions ptr " <<  (int64)partition_offset_positions[i];
+	std::vector<int64> & partition_counters = manager->getPartitionCounters();
+	for(int32 i = 0 ; i < partitions; i++){
+	    last_ptr += partition_counters[i];
 	}
-	partition_offset_positions[partitions] = 0;
+	last_ptr *= edge_size;
 
 	//setting last pointer to the first position of the last partion because it will be sorted
 	last_ptr =  partition_initial_positions[partitions-1];
 
+	block_sorting(base_ptr + ptr, base_ptr + last_ptr, manager->isInSplit(), partition_counters);
 
-/*
-	checkCounters();
-	checkCounters2(partition_initial_positions,partition_offset_positions );
-*/
-
-	IdType partition_id;
-
-	int64 partition_ptr;
-	while(ptr < last_ptr){
-		partition_id = manager->getPartitionId(*((IdType*)(ptr + base_ptr)), *((IdType*)(ptr + base_ptr+ id_size)));
-		partition_ptr = partition_offset_positions[partition_id];
-		/*if(partition_id == 0 && ptr > partition_initial_positions[1]){
-			std::cout<<"";
-			checkCounters();
-			checkCounters2(partition_initial_positions,partition_offset_positions );
-		}*/
-		if(ptr != partition_ptr){
-
-			/*if(partition_ptr>=buffer_size){
-				checkCounters();
-				checkCounters2(partition_initial_positions,partition_offset_positions );
-			}*/
-			//LOG(INFO) << "Changing edges ("<<  *((IdType*)(ptr + base_ptr)) << "," << *((IdType*)(ptr + base_ptr+ id_size)) << ") - ("<< *((IdType*)(base_ptr + partition_ptr)) << "," << *((IdType*)(base_ptr + partition_ptr+ id_size)) << ")";
-			memcpy(tmp_edge, base_ptr+ptr, edge_size);
-			memcpy(base_ptr+ptr, base_ptr+partition_ptr ,edge_size);
-			memcpy(base_ptr+partition_ptr, tmp_edge ,edge_size);
-			//LOG(INFO) << "Changing edges ("<<  *((IdType*)(ptr + base_ptr)) << "," << *((IdType*)(ptr + base_ptr+ id_size)) << ") - ("<< *((IdType*)(base_ptr + partition_ptr)) << "," << *((IdType*)(base_ptr + partition_ptr+ id_size)) << ")";
-
-		}else{
-
-			//LOG(INFO) << "Offset ("<<  *((IdType*)(ptr + base_ptr)) << "," << *((IdType*)(ptr + base_ptr+ id_size)) << ")";
-			ptr += edge_size;
-			if(ptr == partition_initial_positions[partition_id+1]){
-				//moving the pointer to the next partition with edges
-				while (partition_initial_positions[partition_id+2] - partition_initial_positions[partition_id+1] == 0)
-					partition_id++;
-				//condition required when the next partition has sorted
-				ptr = partition_offset_positions[partition_id+1] = max(partition_offset_positions[partition_id+1] - edge_size, partition_initial_positions[partition_id+1]);
-				//checkCounters();
-				//checkCounters2(partition_initial_positions,partition_offset_positions );
-			}
-
-		}
-
-		partition_offset_positions[partition_id]+= edge_size;
-	//	LOG(INFO) << "Moving partition "<<  partition_id << " to " << partition_offset_positions[partition_id];
-	}
 
 	file_offsets.resize(partitions);
 
@@ -294,6 +335,14 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::split(){
 			continue;
 		}
 		int64 partition_size = sizeof(char) * partition_counters[i] * edge_size;
+
+		//sub_sorting
+		if( cache_partitioning){
+            std::vector<int64> *b_counters = block_counting(offset, offset+partition_size, !manager->isInSplit());
+            block_sorting(offset + ptr, offset+partition_size, !manager->isInSplit(), *b_counters);
+            delete b_counters;
+		}
+
 
 		FILE * pFile;
 		std::string file = get_file(graph, file_prefix, partition_file);
@@ -314,8 +363,8 @@ void SplitterBuffer<IdType, EdgeSplitterManager_>::split(){
 }
 
 
-template <class IdType, class EdgeSplitterManager_>
-void SplitterBuffer<IdType, EdgeSplitterManager_>::flush(){
+template <class IdType, class EdgeSplitterManager_, class EdgeDataType>
+void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::flush(){
 	split();
 }
 

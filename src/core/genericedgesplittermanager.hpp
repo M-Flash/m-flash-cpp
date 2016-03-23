@@ -32,6 +32,7 @@ class GenericEdgeSplitterManager{//: public EdgeSplitterManager<IdType>{
         IdType getPartitions();
         IdType getIdsByPartition();
         bool isInSplit();
+        void setInSplit(bool in_split);
 
         GenericEdgeSplitterManager( int64 ids_by_partitions, bool in_split = true,  int64 partitions = 0);
         ~GenericEdgeSplitterManager(){}
@@ -65,9 +66,12 @@ GenericEdgeSplitterManager<IdType>::GenericEdgeSplitterManager(int64 ids_by_part
 
 template <class IdType> inline
 IdType GenericEdgeSplitterManager<IdType>::getPartitionId(IdType in_id, IdType out_id){
-  if (in_split)
-    return in_id>>partitionshift;
-  return out_id>>partitionshift;
+  in_id = (in_split? in_id: out_id);
+#if IdType == int32
+  if(partitionshift >=32)
+      return 0;
+#endif
+  return in_id >>=partitionshift;
 }
 
 
@@ -98,6 +102,11 @@ template <class IdType> inline
 bool GenericEdgeSplitterManager<IdType>::isInSplit(){
     return in_split;
 }
+template <class IdType> inline
+void GenericEdgeSplitterManager<IdType>:: setInSplit(bool in_split){
+    this->in_split = in_split;
+}
+
 
 
 template <class IdType> inline

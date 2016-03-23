@@ -28,7 +28,9 @@ int main(int argc, char* argv[]){
 */
 
 	//Twitter
-	std::string graph_file = "/data/hugo-data/hugo-others/datasets/twitter";
+	std::string graph_file = "/data/hugo-data/hugo-git/projects/m-flash-cpp/test/sparse-graph-shuffle";
+	mflash::set_conf("cachesize", "8");
+
 	//int64 vertices_partition = 41652231;
 	//int64 buffer_size = 1024L*1024*1024 * 8;
 	//bool edgelist = true;

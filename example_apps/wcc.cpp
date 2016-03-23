@@ -22,9 +22,9 @@ int main(int argc, char ** argv){
 
     	std::string wcc = get_parent_directory(filename) + "wcc";
 
-	Matrix<EmptyField, int> matrix (filename);
+	Matrix<EmptyField, int32> matrix (filename);
 	matrix = matrix.transpose();
-	PrimitiveVector<int, int> pvector(wcc);
+	PrimitiveVector<int32, int32> pvector(wcc);
 	WCC::run(matrix, pvector, iterative != 0, niters);
 	return 0;
 }

@@ -65,9 +65,9 @@ namespace mflash{
 
 		LOG(INFO) << "==== DIVIDING IN PARTITIONS ==== ";
 		clean_mflash_directory(graph_file);
-		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>(vertices_by_partition, true, 0, vertices_by_cache);
+		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>(vertices_by_partition, true, 0, 0);
 
-		SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> > *bsplitter = new SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> >(emanager, graph_file, edge_data_size ,buffer_size, "tmp");
+		SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> > *bsplitter = new SplitterBuffer<IdType, EdgeSplitterManagerWithBlockCounting<IdType> >(emanager, graph_file, edge_data_size ,buffer_size, "tmp", false);
 
 
 		if (file_type_str == "adjlist" || file_type_str == "edgelist"){
@@ -108,7 +108,7 @@ namespace mflash{
 				}
 
 		        EdgeSplitterManagerExtended<IdType> *emanagerext = new EdgeSplitterManagerExtended<IdType>(vertices_by_partition, false,i, block_types, vertices_by_cache);
-		        SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> > *psplitter = new SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> >(emanagerext, graph_file, edge_data_size, buffer_size, "");
+		        SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> > *psplitter = new SplitterBuffer<IdType, EdgeSplitterManagerExtended<IdType> >(emanagerext, graph_file, edge_data_size, buffer_size, "", true);
 
 				EmptyField edge_data_type;
 				while(stream.has_remain()){

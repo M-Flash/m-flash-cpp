@@ -11,14 +11,17 @@
 using namespace mflash;
 int main(){
 	std::string graph_file;
-	graph_file = "/data/hugo-data/hugo-git/projects/m-flash-cpp/test/.M-FLASH/sparse-graph/0_0.block";
+	graph_file = "/data/hugo-data/hugo-others/datasets/.M-FLASH/powerlawgraph/0.partition";
 	MappedStream stream (graph_file);
 
-	int from, to;
+	int32 from, to;
+	float value;
 	while(stream.has_remain()){
 		from = stream.next_int();
 		to = stream.next_int();
-		std::cout<<from << " "<< to<<std::endl;
+		value = *((float*)stream.next(4, 0));
+
+		std::cout<<from << " "<< to<<" "<<value<<std::endl;
 	}
 	stream.close_stream();
 

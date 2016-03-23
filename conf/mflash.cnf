@@ -3,10 +3,11 @@
 # execthreads=2
 # configuration for 4GB
 memorysize = 8589934592
-cachesize = 2097152
+cachesize = 262144
+#cachesize = 32768
 filetype = edgelist
 edgeseparator =  
-file = /data/hugo-data/hugo-others/datasets/powerlawgraph
+file = /data/hugo-data/hugo-others/datasets/twitter
 iterative = 0
-niters = 1
+niters = 10
 #check_ids = 1

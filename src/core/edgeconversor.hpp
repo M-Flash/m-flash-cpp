@@ -18,16 +18,16 @@
 namespace mflash{
 
 
-template <class IdType>
+template <class IdType, class EdgeDataType = EmptyField>
 class EdgeConversor{
 	public:
 		template <class Splitter>
 		static void process (const std::string file_graph, const char separator, const bool edgelist, Splitter &splitter);
 };
 
-template <class IdType>
+template <class IdType, class EdgeDataType>
 template <class Splitter>
-void EdgeConversor<IdType>::process(const std::string file_graph, const char separator, const bool edgelist, Splitter &splitter){
+void EdgeConversor<IdType, EdgeDataType>::process(const std::string file_graph, const char separator, const bool edgelist, Splitter &splitter){
 	MappedStream in(file_graph);
 
 	IdType v1 = 		0;
@@ -44,7 +44,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 	const char separator2 = '\t';
 	const char separator3 = ' ';
 
-	EmptyField value;
+	EdgeDataType *value = new EdgeDataType();
 
 /*
 
@@ -73,7 +73,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 	  newline = false;
 	  if (b == separator || b == separator2 || b == separator3){
 		if(!isInVertice && !isQuantity){ //
-			splitter.add(v1, v2, &value);
+			splitter.add(v1, v2, value);
 		}else{
 			if(isInVertice) isInVertice = false;
 			else if(isQuantity) isQuantity = false;
@@ -91,7 +91,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 			in.set_position(in.position()- sizeof(char));
 
 			if(!isQuantity || edgelist){
-				splitter.add(v1, v2, &value);
+				splitter.add(v1, v2, value);
 			}
 			v1 = 0;
 			v2 = 0;
@@ -112,6 +112,7 @@ void EdgeConversor<IdType>::process(const std::string file_graph, const char sep
 	}
 	in.close_stream();
 	splitter.flush();
+	delete value;
 	LOG(INFO)<<"Graph Binarization was succesfully";
 }
 

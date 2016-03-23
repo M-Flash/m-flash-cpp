@@ -74,7 +74,7 @@ namespace mflash{
           stream.close_stream();
 
           after_iteration(matrix);
-          LOG(INFO)<<matrix.size();
+          //LOG(INFO)<<matrix.size();
           vector.resize(matrix.size());
           vector.store_region(0, matrix.size() , sets);
         }
@@ -185,25 +185,25 @@ namespace mflash{
        //LOG(INFO) << "WEAK CONNECTED COMPONENT STARTED"<<endl;
        if(matrix.get_elements_by_block() <= matrix.size() || iterative){
            Matrix<E, IdType> m = matrix.transpose();
-           LOG(INFO) << "ITERATIVE WEAK CONNECTED COMPONENT STARTED"<<endl;
+           LOG(INFO) << "ITERATIVE WEAK CONNECTED COMPONENT STARTED";
            WCCAlgorithmIterativeOperator<V, E, IdType> algorithm;
            algorithm.initialize_ = true;
            do{
                algorithm.state = false;
                m.operate(algorithm, vector, vector);
-               LOG(INFO) << "ITERATION "<< iteration++ <<endl;
+               LOG(INFO) << "ITERATION "<< iteration++;
                m = m.transpose();
                algorithm.initialize_ = false;
                niters--;
            }while(algorithm.state && niters != 0);
-           LOG(INFO) << "WEAK CONNECTED COMPONENT FINISHED"<<endl;
+           LOG(INFO) << "WEAK CONNECTED COMPONENT FINISHED";
        }else{
-           LOG(INFO) << "UNION-FIND CONNECTED COMPONENT STARTED"<<endl;
+           LOG(INFO) << "UNION-FIND CONNECTED COMPONENT STARTED";
            PrimitiveUnionFindOperator<V, E, IdType> algorithm;
            algorithm.run(matrix, vector);
            //WCCAlgorithmUnionFindOperator<V, E, IdType> algorithm;
            //matrix.operate(algorithm, vector, vector/*, false,false*/);
-           LOG(INFO) << "UNION-FIND CONNECTED COMPONENT FINISHED"<<endl;
+           LOG(INFO) << "UNION-FIND CONNECTED COMPONENT FINISHED";
        }
      }
   };

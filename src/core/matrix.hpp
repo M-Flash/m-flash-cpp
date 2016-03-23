@@ -55,6 +55,8 @@ class Matrix { //: MatrixInterface{
 
 	MatrixProperties *properties;
 
+	void removingDynamicVectors();
+
 	//BlockType get_block_type(int block_count, int64 vertex_size_bytes,int64 edge_size_bytes);
 public:
 	Matrix(std::string file, bool transpose = false, Mode mode = Mode::VECTOR_REPLICATION/*, int64 size, int64 element_by_block*/);
@@ -65,7 +67,10 @@ public:
 
 	~Matrix();
 
+
 	Matrix<E, IdType> transpose();
+
+	Matrix<E, IdType> & operator=(const Matrix<E, IdType> & from);
 
 	std::string get_file() {
 		return file;
@@ -97,7 +102,9 @@ public:
 	}
 
 	void set_matrix_properties(MatrixProperties &newProperties){
-		if(properties != NULL) delete properties;
+	    if(properties != NULL) delete properties;
+
+	    if(&newProperties == NULL) return;
 
 		properties = new MatrixProperties(newProperties);
 	}
@@ -173,6 +180,11 @@ Matrix<E, IdType>::Matrix(std::string graph, bool transpose, Mode mode) {
 
 template<class E, class IdType>
 Matrix<E, IdType>::~Matrix() {
+    removingDynamicVectors();
+}
+
+template<class E, class IdType> void
+Matrix<E, IdType>::removingDynamicVectors() {
   if(worker != NULL){
      delete worker;
      worker = NULL;
@@ -192,6 +204,19 @@ Matrix<E, IdType> Matrix<E, IdType>::transpose() {
 	  t.properties = new MatrixProperties(*properties);
 	}
 	return (t);
+}
+
+template<class E, class IdType>
+Matrix<E, IdType>& Matrix<E, IdType>::operator=(const Matrix<E, IdType>& from) {
+    removingDynamicVectors();
+    this->file = from.file;
+    this->transpose_ = from.transpose_;
+    this->mode = from.mode;
+    set_matrix_properties(*(from.properties));
+
+    this->worker = new MatrixWorker<E, IdType>(*this);
+
+    return *this;
 }
 
 template<class E, class IdType>
