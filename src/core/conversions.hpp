@@ -62,7 +62,7 @@ namespace mflash{
 			LOG(ERROR) << "You need to specify filetype: 'edgelist',  'adjlist', 'adjlist2', or 'binedgelist'." << std::endl;
 			assert(false);
 		}
-
+		LOG(INFO) << "GRAPH PREPROCESSING USING THE FORMAT: "<< file_type_str;
 		LOG(INFO) << "==== DIVIDING IN PARTITIONS ==== ";
 		clean_mflash_directory(graph_file);
 		EdgeSplitterManagerWithBlockCounting<IdType> *emanager = new EdgeSplitterManagerWithBlockCounting<IdType>(vertices_by_partition, true, 0, 0);
@@ -105,6 +105,7 @@ namespace mflash{
 				for (int64 j = 0; j < partitions; j++){
 					//ratio = ((double)1)/partitions + ( ((double)2) * counters[i * partitions + j] * edge_size / vertices_by_partition);
 					block_types[j] =  getBlockType<E, IdType>(partitions, vertices_by_partition, counters[i * partitions + j], vertex_size); //ratio<1? BlockType::SPARSE: BlockType::DENSE;
+				    //block_types[j] = (j>1?BlockType::SPARSE: BlockType::DENSE);//getBlockType<E, IdType>(partitions, vertices_by_partition, counters[i * partitions + j], vertex_size); //ratio<1? BlockType::SPARSE: BlockType::DENSE;
 				}
 
 		        EdgeSplitterManagerExtended<IdType> *emanagerext = new EdgeSplitterManagerExtended<IdType>(vertices_by_partition, false,i, block_types, vertices_by_cache);

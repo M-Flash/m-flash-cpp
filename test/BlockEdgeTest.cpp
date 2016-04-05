@@ -11,19 +11,26 @@
 using namespace mflash;
 int main(){
 	std::string graph_file;
-	graph_file = "/data/hugo-data/hugo-others/datasets/.M-FLASH/powerlawgraph/0.partition";
+	graph_file = "/data/hugo-data/hugo-others/datasets/.M-FLASH/lj/0.partition.output";
 	MappedStream stream (graph_file);
 
 	int32 from, to;
-	float value;
+	//float value;
+	int32 mfrom = 100000, mto = 100000;
+
 	while(stream.has_remain()){
 		from = stream.next_int();
 		to = stream.next_int();
-		value = *((float*)stream.next(4, 0));
-
-		std::cout<<from << " "<< to<<" "<<value<<std::endl;
+		//value = *((float*)stream.next(4, 0));
+		if(from <= mfrom){
+		    mfrom = from;
+		    if(to < mto){
+		        mto = to;
+		    }
+		}
 	}
 	stream.close_stream();
+	std::cout<<mfrom << " "<< mto<<" "<</*value<<*/std::endl;
 
 	return 0;
 }

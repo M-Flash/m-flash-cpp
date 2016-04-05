@@ -355,8 +355,8 @@ template<class E, class IdType>
 inline BlockType getBlockType(int64 partitions, int64 vertices_by_partition, int64 edges, int64 source_size) {
 	double ratio = getBlockRatio<E,IdType>(partitions, vertices_by_partition, edges, source_size);
 	LOG(INFO) << ratio;
-	//return ratio < 1.0 ? BlockType::SPARSE : BlockType::DENSE;
-	return BlockType::DENSE;
+	return ratio < 1.0 ? BlockType::SPARSE : BlockType::DENSE;
+	//return BlockType::SPARSE;
 }
 
 

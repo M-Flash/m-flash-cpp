@@ -32,7 +32,7 @@ namespace mflash{
    */
   class MappedStream{
 	  const static int64 CHAR_SIZE = (int64)sizeof(char);
-      const static int64 INT_SIZE = (int64)sizeof(int);
+      const static int64 INT_SIZE = (int64)sizeof(int32);
       const static int64 INT64_SIZE = (int64)sizeof(int64);
       const static int64 FLOAT_SIZE = (int64)sizeof(float);
       const static int64 DOUBLE_SIZE = (int64)sizeof(double);

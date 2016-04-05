@@ -51,6 +51,7 @@ void EdgeConversor<IdType, EdgeDataType>::process(const std::string file_graph, 
 	const int64 MEGABYTE = 1024 * 1024;
 	const int64 STEP_INFO = 500 * MEGABYTE;
 */
+	LOG(INFO)<<"Graph Binarization started";
 	bool newline = true;
 	while(in.has_remain()){
 		char b = in.next_char();

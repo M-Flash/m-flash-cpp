@@ -306,7 +306,7 @@ void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::split(){
 	int64 last_ptr = 0; //ptr + current_position * edge_size;
 	IdType partitions = manager->getPartitions();
 
-	int64 partition_initial_positions[partitions+1];
+	//int64 partition_initial_positions[partitions+1];
 	std::vector<int64> & partition_counters = manager->getPartitionCounters();
 	for(int32 i = 0 ; i < partitions; i++){
 	    last_ptr += partition_counters[i];
@@ -314,7 +314,7 @@ void SplitterBuffer<IdType, EdgeSplitterManager_, EdgeDataType>::split(){
 	last_ptr *= edge_size;
 
 	//setting last pointer to the first position of the last partion because it will be sorted
-	last_ptr =  partition_initial_positions[partitions-1];
+	//last_ptr =  partition_initial_positions[partitions-1];
 
 	block_sorting(base_ptr + ptr, base_ptr + last_ptr, manager->isInSplit(), partition_counters);
 

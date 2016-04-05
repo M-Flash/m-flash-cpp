@@ -65,6 +65,7 @@ public:
 
 	int64 field_count;
 	void** value_pointers;
+	int64 direction;
 
 	GenericArray *source_pointer;
 	GenericArray *destination_pointer;
@@ -135,6 +136,7 @@ inline MatrixWorker<E, IdType>::MatrixWorker(Matrix<E,IdType> &matrix) {
 	this->value_pointers = 0;
 	this->field_count = 0;
 	this->array_pointers = 0;
+	this->direction = -1;
 
 }
 
@@ -392,8 +394,24 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 
 	matrixProperties = matrix->get_matrix_properties();
 
+	// direction
+	if( matrix->is_transpose()){
+	    if( direction == 1){
+	        direction = 3;
+	    }else{
+	        direction = 1;
+	    }
+	}else{
+	    if( direction == 0){
+            direction = 2;
+        }else{
+            direction = 0;
+        }
+	}
+
 	//block iteration
-	BlockIterator<E, IdType> iterator(matrix, matrix->is_transpose() ? 1 : 0);
+	//BlockIterator<E, IdType> iterator(matrix, matrix->is_transpose() ? 1 : 0);
+	BlockIterator<E, IdType> iterator(matrix, direction);
 
 	int row = -1;
 	int last_col = -1;
@@ -416,7 +434,7 @@ void MatrixWorker<E, IdType>::operate(MALGORITHM &algorithm) {
 
 
 	algorithm.before_iteration(0, *this);
-
+	LOG (INFO)<< "--- BLOCK PROCESSING USING DIRECTION: "<< direction;
 	//int block_id = -1;
 	while (iterator.has_next()) {
 		Block block = iterator.next();

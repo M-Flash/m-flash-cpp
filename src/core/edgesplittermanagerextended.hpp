@@ -77,7 +77,6 @@ template <class IdType> EdgeSplitterManagerExtended<IdType>::EdgeSplitterManager
 	this->ids_cache = ids_cache;
 	this->partitions = block_types.size()+1;
 	this->in_split = in_split;
-	this->partition_counters.resize(partitions);// = new std::vector<int64>(partitions);
 
 	this->partition_id = partition_id;
 
@@ -86,8 +85,13 @@ template <class IdType> EdgeSplitterManagerExtended<IdType>::EdgeSplitterManager
     for(int32 i = 0; i < this->partitions -1; i++){
         sparse_block[i] = block_types[i] == BlockType::SPARSE;
     }
-
     sparse_block[this->partitions-1] = true;
+
+    //updating the number of partitions considering the cache size
+    if(cache_partitioning)
+        this->partitions = (ids_by_partition * block_types.size() / ids_cache) + 1;
+
+    this->partition_counters.resize(partitions);// = new std::vector<int64>(partitions);
 
 }
 
@@ -95,20 +99,21 @@ template <class IdType> inline
 IdType EdgeSplitterManagerExtended<IdType>::getPartitionId(IdType in_id, IdType out_id){
   if (!in_split)
     in_id = out_id;
-  in_id>>=shift;
   if (sparse_block[in_id >>partitionshift])
       return this->partitions-1;
-  return in_id;
+  return (in_id>>shift);
 }
 
 template <class IdType> inline
 IdType EdgeSplitterManagerExtended<IdType>::countEdge(IdType in_id, IdType out_id){
 	IdType partition_id = getPartitionId(in_id, out_id);
 	//checking partition by source
-	if ( partition_id >= partitions){
-		//LOG(INFO) << "Increasing partitions to "<< partition_id+1;
-		partitions = partition_id  + 1;
-		partition_counters.resize(partition_id  + 1);
+	if ( partition_id > partitions-1){
+		partition_counters.resize(partition_id  + 2);
+		partition_counters[partition_id  + 1] = partition_counters[partitions-1];
+		partition_counters[partitions-1] = 0;
+		partitions = partition_id  + 2;
+
 	}
 	partition_counters[partition_id] ++;
 	return partition_id ;
@@ -144,12 +149,14 @@ std::vector<int64>& EdgeSplitterManagerExtended<IdType>::getPartitionCounters(){
 
 template <class IdType> inline
 std::string EdgeSplitterManagerExtended<IdType>::getPartitionFile(IdType id){
-    if(cache_shift){
-        id = (int)(id/(ids_by_partition/ids_cache));
-    }
     if(id == this->partitions -1){
         return get_partition_file("", partition_id);
     }
+
+    if(cache_shift){
+        id = (int)(id/(ids_by_partition/ids_cache));
+    }
+
     return get_block_file("", partition_id, id);
 }
 
