@@ -1,0 +1,37 @@
+#live journal
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/lj/
+/data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b pagerank --pagerank::niters 10 -g lj --physical_memory 8589934592 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-lj
+
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b pagerank --pagerank::niters 10 -g lj --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-lj3
+
+#connected components lj
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/lj/
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b cc -g lj --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-cc-lj1
+
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b pagerank --pagerank::niters 10 -g lj --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-lj3  
+
+
+#pagarank twitter
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/twitter
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b pagerank --pagerank::niters 10 -g twitter --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-twitter_pagerank1
+
+#cc twitter
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/twitter
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b cc -g twitter --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-cc-twitter3
+
+#yahoo pg
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/yahoo
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b pagerank --pagerank::niters 1 -g yahoo --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-yahoo_pagerank1
+
+#yahoo cc
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/yahoo
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b cc -g yahoo --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-cc-yahooo1
+
+
+#powerlawgraph pg
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/powerlawgraph
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b pagerank --pagerank::niters 1 -g powerlawgraph --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-powerlawgraph_pagerank1
+
+#powerlawgraph cc
+cd /data/hugo-data/hugo-others/datasets/.M-FLASH/powerlawgraph
+sudo /data/hugo-data/hugo-others/frameworks/x-stream-0.9/bin/benchmark_driver -p 4 -a -b cc -g powerlawgraph --physical_memory 8589934592 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/xtream-cc-powerlawgraph2

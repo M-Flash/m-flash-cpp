@@ -1,0 +1,40 @@
+#live journal pgrank
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+sudo bin/example_apps/pagerank_functional mode sync file /data/hugo-data/hugo-others/datasets/lj filetype edgelist niters 10 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-lj3 
+
+
+#live journal cc
+$/data/hugo-data/hugo-others/frameworks/graphchi-cpp/example_apps/unionfind_connectedcomps.cpp
+
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+make example_apps/unionfind_connectedcomps
+sudo bin/example_apps/unionfind_connectedcomps file /data/hugo-data/hugo-others/datasets/lj filetype edgelist 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-cc-lj
+
+#twitter pgrank
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+make example_apps/pagerank_functional
+sudo bin/example_apps/pagerank_functional mode sync file /data/hugo-data/hugo-others/datasets/twitter filetype edgelist niters 10 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-twitter-pg1
+
+#twitter cc
+sudo bin/example_apps/unionfind_connectedcomps file /data/hugo-data/hugo-others/datasets/twitter filetype edgelist 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-twitter-uf1
+
+#yahoo pgrank
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+make example_apps/pagerank_functional
+sudo bin/example_apps/pagerank_functional mode sync file /data/hugo-data/hugo-others/datasets/yahoo filetype adjlist niters 1 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-yahoo-pg1
+
+#yahoo cc
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+make example_apps/connectedcomponents
+sudo bin/example_apps/connectedcomponents file /data/hugo-data/hugo-others/datasets/yahoo filetype adjlist niters 1 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-yahoo-cc1
+
+
+#powerlaw pg
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+make example_apps/pagerank_functional
+sudo bin/example_apps/pagerank_functional mode sync file /data/hugo-data/hugo-others/datasets/powerlawgraph filetype edgelist niters 1 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-powerlawgraph-pg1
+
+#powerlaw cc
+cd /data/hugo-data/hugo-others/frameworks/graphchi-cpp/
+make example_apps/connectedcomponents
+sudo bin/example_apps/connectedcomponents file /data/hugo-data/hugo-others/datasets/powerlawgraph filetype edgelist niters 1 2>&1 | tee /data/hugo-data/hugo-drive/doutorado/experiments/updated-experiments/graphchi-powerlawgraph-cc1
