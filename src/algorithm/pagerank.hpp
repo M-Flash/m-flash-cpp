@@ -55,7 +55,7 @@ template <class V, class E, class IdType>
 			*(out_accumulator.value) = *(accumulator1.value) + *(accumulator2.value);
 		}
 		inline void apply(MatrixWorker<E, IdType> &worker, Element<V, IdType> &out_element){
-			*(out_element.value) += RESISTANCE * *(out_element.value) + ( (V)1 - RESISTANCE)/n;
+			*(out_element.value) = RESISTANCE * *(out_element.value) + ( (V)1 - RESISTANCE)/n;
 		}
 		inline bool is_initialized(){return true;}
 		inline bool is_applied(){return true;}
@@ -68,7 +68,6 @@ template <class V, class E, class IdType>
 		inline void after_iteration(int iteration, MatrixWorker<E, IdType>  &worker) {}
 
 	};
-
 
 	class PageRank {
 	public:
@@ -101,12 +100,15 @@ template <class V, class E, class IdType>
       }
       Matrix<E, IdType> m = matrix.transpose();
       LOG (INFO) << "PR  = 1/N";
+      LOG (INFO) << "PR  = 1/"<< matrix.size();
 
+      pg_operator.n = matrix.size();
       destination.fill((V)1/matrix.size());
+
       for (int iteration = 0; iteration < iterations; iteration++){
           LOG (INFO) << endl<< "========== ITERATION "<< iteration <<" ==========";
           LOG (INFO) << "PR = PR ./ OUTDEGREE";
-          destination.multiply(degree_vec);
+          current_vec->multiply(degree_vec);
           LOG (INFO) << "NEXT_PR = 0.15/N + 0.85 * M*PR ";
 /*
           Vector<V, IdType> *current_vec_v = current_vec;

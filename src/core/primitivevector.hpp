@@ -216,7 +216,7 @@ namespace mflash{
 				return Vector<V,IdType>::operate(operator_, *this,  2, new Vector<V,IdType>*[2]{this, &vector2});
 		}else{
 				//multiplication element to element
-				PrimitiveVectorBinarySum<V,IdType> operator_;
+				PrimitiveVectorBinaryMul<V,IdType> operator_;
 				Vector<V,IdType>::operate(operator_, output,  2, new Vector<V,IdType> *[2]{this, &vector2});
 				V v = 0;
 				return v;
