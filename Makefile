@@ -16,13 +16,13 @@ LINKERFLAGS =  $(BOOST_LIBRARIES) $(SO_LIBRARIES)
 DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find . -name '*.hpp')
 
-FILE_PATH = $(basename $(shell echo $@ | sed -E 's/^(debug|build)\/[^/]+\///g'))
+FILE_PATH = $(basename $(shell echo $@ | sed -E 's/^(debug|build)\///g'))
 FILENAME = $(notdir $(FILE_PATH))
 SOURCE_FILE = $(addsuffix .cpp,$(FILE_PATH)) 
 
 
 all: apps
-apps: build/project/example_apps/lancsosso.cpp build/project/example_apps/pagerank.cpp build/project/example_apps/wcc.cpp
+apps: build/example_apps/lancsosso.cpp build/example_apps/pagerank.cpp build/example_apps/wcc.cpp
 
 echo/%: 
 	echo bin/$(@F)
@@ -35,5 +35,10 @@ debug/%: $(SOURCE_FILE) $(HEADERS)
 	$(CPP) $(CPPFLAGS-DEBUG) -I. $(FILE_PATH).cpp -o bin/$(FILE_PATH) $(LINKERFLAGS)
 
 build/%: $(SOURCE_FILE) $(HEADERS) 
-	@mkdir -p bin/$(dir $(FILE_PATH))
+	@mkdir -p bin/$(dir $(FILE_PATH))   
 	$(CPP) $(CPPFLAGS) -I. $(FILE_PATH).cpp -o bin/$(FILE_PATH) $(LINKERFLAGS)
+
+example_apps/%: $(SOURCE_FILE) $(HEADERS) 
+	@mkdir -p bin/$(dir $(FILE_PATH))   
+	$(CPP) $(CPPFLAGS) -I. $(FILE_PATH).cpp -o bin/$(FILE_PATH) $(LINKERFLAGS)
+
