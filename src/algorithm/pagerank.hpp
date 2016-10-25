@@ -110,15 +110,17 @@ template <class V, class E, class IdType>
           LOG (INFO) << "PR = PR ./ OUTDEGREE";
           current_vec->multiply(degree_vec);
           LOG (INFO) << "NEXT_PR = 0.15/N + 0.85 * M*PR ";
-/*
-          Vector<V, IdType> *current_vec_v = current_vec;
-          Vector<V, IdType> *next_vec_v = next_vec;
-*/
 
-          m.operate(pg_operator, *current_vec, *next_vec);//, true, true, iteration%2!=0);
+          m.operate(pg_operator, *current_vec, *next_vec);
           tmp = current_vec;
           current_vec = next_vec;
           next_vec = tmp;
+      }
+      if (current_vec == &destination){
+          delete_file(next_file);
+      }else{
+          delete_file(destination.get_file());
+          rename_file(next_file, destination.get_file());
       }
     }
 
